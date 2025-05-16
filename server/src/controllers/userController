@@ -1,10 +1,15 @@
-import pgPromise from "pg-promise";
-const pgp = pgPromise();
-const db = pgp(
-    `postgres://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`
-);
+import pg from 'pg';
+const { Pool } = pg;
 
-db.connect()
+const db = new Pool({
+    user: process.env.PGUSER,
+    host: process.env.PGHOST,
+    database: process.env.PGHOST,
+    password: process.env.PGPASSWORD,
+    port: process.env.PGPORT,
+});
+
+await db.connect()
     .then(() => {
         console.log('Connected to database');
     })
@@ -20,7 +25,7 @@ const getAllUsers = async (req, res) => {
         return next(error);
     }
     res.status(200).json(users);
-}
+};
 
 // returns studens with id = ID
 const getUserWithID = async (req, res, next) => {

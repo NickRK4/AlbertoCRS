@@ -1,6 +1,9 @@
 import styled from "styled-components";
+import React, { useState } from "react";
+import { useNavigate } from "react-router";
 
 const Container = styled.div`
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -10,62 +13,114 @@ const Container = styled.div`
 `;
 
 const StyledButton = styled.button`
-    background-color: #550688;
-    border: none;    
+    background-color:#530686;
+    font-weight: 300;
     color: white;
-    padding: 13px 32px;
     text-align: center;
-    text-decoration: none;
-    display: inline-block;
     font-size: 16px;
     margin: 4px 2px;
-    cursor: pointer;
-    width: 100%; // Make button full width
-    max-width: 300px;
+    margin-left: -10px;
+    align-self: flex-start;
+    border: none;    
+    outline: 0;
+`;
+
+const LeftContainer = styled.div`
+    flex: 1;
+    padding: 20px;
+    margin-right: 100px;
+    text-align: left;
+    max-width: 450px;
+`;
+
+const RightContainer = styled.div`
+    flex: 1;
+    max-width: 420px;
+    padding: 20px;
 `;
 
 const FormContainer = styled.div`
-    width: 100%;
-    max-width: 300px;
     padding: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
 `;
 
-const StyledInput = styled.input`
-    width: 100%;
-    padding: 12px 20px;
-    margin: 8px 0;
-    box-sizing: border-box;
+const Label = styled.label`
+    color: white;
+    align-self: flex-start;
 `;
 
+// stop from highlighting whenever you click on the input field
+const StyledInput = styled.input`
+    width: 400px;
+    padding: 12px 20px;
+    margin: 8px 0;
+    border-radius: 5px;
+    border: none;
+    box-sizing: border-box;
+    outline: none;
+`;
+
+const BackgroundImage = styled.img`
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1;
+    opacity: 0.3;
+`;
+
+const BG = styled.div`
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    z-index: -2;
+    `
+
 const SignIn = () => {
-    const handleButton = (e: { preventDefault: () => void; }) => {
+ 
+    const [ username, setUsername ] = useState("");
+    const [ password, setPassword ] = useState("");
+    const navigate = useNavigate();
+
+    const handleSubmit = (e : React.FormEvent) => {
         e.preventDefault();
+        
+
     }
+
     return (
         <>
         <Container>
+            <LeftContainer>
+                <h1>Welcome Back!</h1>
+                <p>Sign in to your account to access 
+                    course information. Docs for this project can be found
+                    <a href="#"> here</a>.
+                </p>
+            </LeftContainer>
+            <RightContainer>
             <FormContainer>
                 <h1>Sign In</h1>
-                <StyledInput type="text" placeholder="Username" />
-                <StyledInput type="password" placeholder="Password" />
-                <Button onClick={handleButton} />
+                <Label>Username</Label>
+                <StyledInput onChange={(e) => setUsername(e.target.value)} type="text" placeholder="Username" />
+                <Label>Password</Label>
+                <StyledInput onChange = {(e) => setPassword(e.target.value)} type="password" placeholder="Password" />
+                <StyledButton onClick={handleSubmit}>Sign in now </StyledButton>
             </FormContainer>
+            </RightContainer>
+            <BackgroundImage src="/WallpaperNYU.jpg" alt="Image" />
+            <BG/>
         </Container>
+
         </>
     )
 }
-
-function Button({onClick}: any) {
-    return (
-        <StyledButton 
-        onClick={onClick}
-        >Click me
-        </StyledButton>
-    )
-}
-
 
 export default SignIn;
