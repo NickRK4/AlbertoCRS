@@ -84,15 +84,30 @@ const BG = styled.div`
     `
 
 const SignIn = () => {
- 
     const [ username, setUsername ] = useState("");
     const [ password, setPassword ] = useState("");
     const navigate = useNavigate();
 
-    const handleSubmit = (e : React.FormEvent) => {
+    const handleSubmit = async (e : React.FormEvent) => {
         e.preventDefault();
-        
+        try {
+            const user : any = await fetch('http://localhost:8000/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({username, password})
+            });
+            const userJSON = await user.json();
+            if (!userJSON){
+                console.log(userJSON);
+            } else {
+                console.log("No user found");
+            }
 
+        } catch (err) {
+            console.error(err);
+        }
     }
 
     return (

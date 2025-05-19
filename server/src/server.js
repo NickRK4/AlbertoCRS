@@ -2,12 +2,13 @@ import express from 'express';
 import logger from './middleware/logger.js';
 import router from './routes/userRoutes.js';
 import errorHandler from './errors/errors.js';
+import cors from 'cors';
 
 const app = express();
 const port = process.env.PORT || 8080;
 
-// set up static files
-app.use(express.static('public'));
+// set up cors
+app.use(cors());
 
 // set up json and urlencoded
 app.use(express.json());
