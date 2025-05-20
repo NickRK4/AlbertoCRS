@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import React, { useState } from "react";
+import React, { useLayoutEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
 const Container = styled.div`
@@ -83,33 +83,43 @@ const BG = styled.div`
     z-index: -2;
     `
 
-const SignIn = () => {
+const SignIn = ( {setShowNavBar} : {setShowNavBar: React.Dispatch<React.SetStateAction<boolean>>} ) => {
     const [ username, setUsername ] = useState("");
     const [ password, setPassword ] = useState("");
     const navigate = useNavigate();
 
+    useLayoutEffect(() => {
+        setShowNavBar(false);
+    }, []);
+
     const handleSubmit = async (e : React.FormEvent) => {
         e.preventDefault();
         try {
-            const user : any = await fetch('http://localhost:8000/api/login', {
+            interface User {
+                username: string;
+                password: string;
+                user_type: string;
+            };
+
+            const res = await fetch('http://localhost:8000/api/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({username, password})
             });
-            const userJSON = await user.json();
-            if (!userJSON){
-                console.log(userJSON);
-            } else {
-                console.log("No user found");
+            if (res.status === 201) {
+                const userJSON : User = await res.json();
+                if (userJSON.user_type === "student") {
+                    navigate("/dashboard");
+                } else if (userJSON.user_type === "professor") {
+                    navigate("/dashboard");
+                } 
             }
-
         } catch (err) {
             console.error(err);
         }
     }
-
     return (
         <>
         <Container>

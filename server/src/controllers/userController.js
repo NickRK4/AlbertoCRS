@@ -75,11 +75,11 @@ const getUserByUserPass = async (req, res, next) => {
         err.status = 404;
         return next(err);
     }
-    res.status(200).json({
-        message: 'User found',
+    res.status(201).json({
+        message: 'User added',
         user: userDetails
     });
 }
 
 
-export { getAllUsers, getUserWithID, addUser }
+export { getAllUsers, getUserWithID, addUser, getUserByUserPass };
