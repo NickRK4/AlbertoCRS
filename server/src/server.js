@@ -1,6 +1,6 @@
 import express from 'express';
 import logger from './middleware/logger.js';
-import router from './routes/userRoutes.js';
+import router from './routes/adminRoutes.js';
 import errorHandler from './errors/errors.js';
 import cors from 'cors';
 
