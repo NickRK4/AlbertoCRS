@@ -18,8 +18,9 @@ await pool.connect()
         console.error('Error connecting to database:', error);
     });
 
+
 // returns all the student
-const getAllUsers = async (req, res, next) => {
+export const getAllUsers = async (req, res, next) => {
     const users = await pool.query('SELECT * FROM users');
     if (!users) {
         const error = new Error('No users found');
@@ -29,7 +30,7 @@ const getAllUsers = async (req, res, next) => {
 };
 
 // returns studens with id = ID
-const getUserWithID = async (req, res, next) => {
+export const getUserWithID = async (req, res, next) => {
     const id = req.params.id;
     const user = await pool.query(`SELECT * FROM users WHERE user_id = ${id}`);
     if (user.length === 0) {
@@ -41,11 +42,8 @@ const getUserWithID = async (req, res, next) => {
 }
 
 
-
-
 // returns all the courses with the professor name
-
-const getAllCourses = async (req, res, next) => {
+export const getAllCourses = async (req, res, next) => {
     try{
         const courses = await pool.query(`SELECT classes.class_id, 
                                         classes.class_code, 
@@ -68,7 +66,7 @@ const getAllCourses = async (req, res, next) => {
 
 
 // add a new student to the students database
-const addUser = async (req, res, next) => {
+export const addUser = async (req, res, next) => {
     //const user = req.body;
     const user = {
         first_name: req.body.first_name,
@@ -94,20 +92,30 @@ const addUser = async (req, res, next) => {
     });
 }
 
-// data the user by the username and password
-const getUserByUserPass = async (req, res, next) => {
+// retrieves data by the username and password
+export const getUserByUserPass = async (req, res, next) => {
     const user = req.body;
-    // Get the user type
-    const userDetails = pool.query("SELECT first_name, last_name, user_type FROM users WHERE email = '${user.email}' AND password = '${user.password}'");
-    if (!userDetails) {
+    const userDetails = await pool.query(`SELECT first_name, last_name, user_type, password_hash FROM users WHERE email = '${user.username}';`);
+    const data = userDetails.rows.at(0);
+    if (data.length === 0) {
         const err = new Error('User not found');
         err.status = 404;
         return next(err);
     }
-    res.status(201).json({
-        message: 'User added',
-        user: userDetails
-    });
+    res.status(200).json(data);
 };
 
-export { getAllUsers, getUserWithID, addUser, getUserByUserPass, getAllCourses };
+// retrieves the student data by the class
+export const getStudentsByClass = async (req, res, next) => {
+    const class_id = req.params.id;
+    const students = await pool.query(`SELECT first_name, last_name, email 
+                                FROM users INNER JOIN classlist ON users.user_id = classlist.user_id
+                                WHERE classlist.class_id = ${class_id}
+                                AND users.user_type = 'student';`);
+    if (students.length === 0) {
+        const err = new Error('No students found');
+        err.status = 404;
+        return next(err);
+    }
+    res.status(200).json(students.rows);
+}

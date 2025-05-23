@@ -5,23 +5,43 @@ import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import { styled as style } from "styled-components";
-import { useState, useEffect, use } from 'react';
-import { Box, Button, Divider, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
+import { useState, useEffect, useLayoutEffect } from 'react';
+import { Box, Drawer } from '@mui/material';
 import React from 'react';
 
 const DrawerContainer = style.div`
     display: flex;
-    align-items: center;
-    padding: 20px;
-    justify-content: center;
+    flex-direction: column;
+    padding: 40px 20px;
+    justify-content: flex-start;
+    align-items: flex-start;
 `;
 
-const Title = style.p`
-    font-size: 24px;
+const Title = style.h2`
+    font-size: 32px;
     font-weight: bold;
     color: #44296F;
+    margin-bottom: 20px;
+    text-align: left;
 `;
 
+const TagList = style.div`
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+`;
+
+const TagItem = style.div`
+    display: flex;
+    align-items: center;
+    background-color: #EFE6FA;
+    border-left: 10px solid #44296F;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+`;
 
 const TableContainer = style.div`
     margin-top: 50px;
@@ -69,13 +89,41 @@ type Course = {
 
 type Anchor = 'top' | 'left' | 'bottom' | 'right';
 
-export default function Dashboard() {
+export default function Dashboard( {setShowNavBar} : {setShowNavBar: React.Dispatch<React.SetStateAction<boolean>>}) {
     const [loading, setLoading] = useState(false);
     const [classes, setClasses] = useState([]);
     const [state, setState] = useState({
         left: false
     })
     const [ selectedClass, setSelectedClass ] = useState({} as Course);
+    const [ students, setStudents ] = useState([]);
+
+    useLayoutEffect(() => {
+        setShowNavBar(true);
+    }, []);
+
+    const getClassData = async (id: number) => {
+        try {
+            const res = await fetch(`http://localhost:8000/api/class/${id}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (res.status !== 200) {
+                throw new Error('Failed to fetch data');
+            }
+            const data = await res.json();
+            console.log(data);
+            setStudents(data);
+            setLoading(false);
+        } catch (err) {
+            console.log(err);
+        } finally {
+            setLoading(false);
+        }
+    }
+
 
     const getData = async () => {
         //setLoading(true);
@@ -116,9 +164,15 @@ export default function Dashboard() {
       }
       setState({ ...state, [anchor]: open });
       setSelectedClass(selected);
+      getClassData(selected.class_id);
     };
 
   const list = (anchor: Anchor) => (
+    // load the class information
+    
+
+
+
     <Box
       sx={{ width: "40vw", minWidth: 500 }}
       role="presentation"
@@ -127,13 +181,16 @@ export default function Dashboard() {
     >
         <DrawerContainer>
         {selectedClass && (
-            <div>
-                <h1>{selectedClass.class_name}</h1>
-                <p>{selectedClass.class_id}</p>
-                <p>{selectedClass.size}</p>
-                <p>{selectedClass.capacity}</p>
-                <p>{selectedClass.professor}</p>
-            </div>
+            <>
+            <Title>{selectedClass.class_name}</Title>
+            <TagList>
+                <TagItem>Class Code: {selectedClass.class_code}</TagItem>
+                <TagItem>Professor: {selectedClass.professor}</TagItem>
+                <TagItem>Class Size: {selectedClass.size}</TagItem>
+                <TagItem>Capacity: {selectedClass.capacity}</TagItem>
+            </TagList>
+
+            </>
         )}
         </DrawerContainer>
     </Box>
@@ -141,7 +198,6 @@ export default function Dashboard() {
     
 
     // renders the page
-
     if (loading) {
         return (
             <h1>Loading...</h1>

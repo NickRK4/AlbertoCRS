@@ -18,8 +18,18 @@ const GlobalStyle = createGlobalStyle`
     padding: 0 0;
   }
 
-  .button {
+  button {
     user-select: none;
+    &:active {
+      outline: none;
+    }
+    &:focus {
+      outline: none;
+    }
+    &:hover {
+      cursor: pointer;
+    }
+
   }
 
 

@@ -1,48 +1,126 @@
 import styled from "styled-components";
-
-const LeftDiv = styled.div`
-    flex: 1;
-    `
-const MiddleDiv = styled.div`
-    flex: 1;
-    font-size: 5px;
-    color: black;
-    min-width: 250px;
-    `
-
-const RightDiv = styled.div`
-    flex: 1;
-    display: flex;
-    justify-content: flex-end;
-    `
-
+import { useState, useRef, useEffect } from "react";
 
 const StyledHeader = styled.div`
-    display: flex;
-    height: 55px;
-    background-color:hsl(0, 0.00%, 94.10%);
-    color: white;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    `
+  display: flex;
+  height: 60px;
+  background-color: #f0f0f0;
+  color: #44296F;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+`;
+
+const LeftDiv = styled.div`
+  flex: 1;
+  display: flex;
+  align-items: center;
+`;
+
+const MiddleDiv = styled.div`
+  flex: 2;
+  text-align: center;
+
+  h1 {
+    font-size: 22px;
+    margin: 0;
+    font-weight: bold;
+    color: #44296F;
+  }
+`;
+
+const RightDiv = styled.div`
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+`;
+
+const BurgerButton = styled.button`
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #44296F;
+`;
+
+const DropdownMenu = styled.div`
+  position: absolute;
+  top: 60px;
+  left: 20px;
+  background-color: white;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  overflow: hidden;
+  z-index: 20;
+`;
+
+const MenuItem = styled.div`
+  padding: 12px 20px;
+  font-size: 14px;
+  color: #44296F;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: #EFE6FA;
+  }
+`;
+
+const SignOutButton = styled.button`
+  background-color: #44296F;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: #351f52;
+  }
+`;
 
 export default function Navbar() {
-    return (
-        <>
-        <StyledHeader>
-            <LeftDiv></LeftDiv>
-            <MiddleDiv>
-                <h1> Course Registration System </h1>
-            </MiddleDiv>
-            <RightDiv>
-                <button>Log Out</button>
-            </RightDiv>
-            
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-        </StyledHeader>
-        
-        </>
-    )
+  // Close menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  return (
+    <>
+      <StyledHeader>
+        <LeftDiv>
+          <BurgerButton onClick={() => setMenuOpen(!menuOpen)}>☰</BurgerButton>
+          {menuOpen && (
+            <DropdownMenu ref={menuRef}>
+              <MenuItem>Classroom</MenuItem>
+              <MenuItem>Register</MenuItem>
+              <MenuItem>Reports</MenuItem>
+            </DropdownMenu>
+          )}
+        </LeftDiv>
+        <MiddleDiv>
+          <h1>Course Registration System</h1>
+        </MiddleDiv>
+        <RightDiv>
+          <SignOutButton>Sign Out</SignOutButton>
+        </RightDiv>
+      </StyledHeader>
+    </>
+  );
 }

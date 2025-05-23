@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import React, { useLayoutEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 const Container = styled.div`
     color: white;
@@ -23,6 +23,7 @@ const StyledButton = styled.button`
     align-self: flex-start;
     border: none;    
     outline: 0;
+    display: inline;
 `;
 
 const LeftContainer = styled.div`
@@ -83,24 +84,40 @@ const BG = styled.div`
     z-index: -2;
     `
 
+const AlertContainer = styled.div`
+    color: red;
+`;
+
+
+interface User {
+    username: string;
+    password: string;
+    user_type: string;
+};
+
+
 const SignIn = ( {setShowNavBar} : {setShowNavBar: React.Dispatch<React.SetStateAction<boolean>>} ) => {
     const [ username, setUsername ] = useState("");
     const [ password, setPassword ] = useState("");
+    const [ showError , setShowError ] = useState(false);
     const navigate = useNavigate();
 
     useLayoutEffect(() => {
         setShowNavBar(false);
     }, []);
 
+    function UserNotFound() {
+        if (!showError) {
+          return null;
+        }
+        return (
+            <p>Username or password is incorrect</p>
+        );
+      }
+
     const handleSubmit = async (e : React.FormEvent) => {
         e.preventDefault();
         try {
-            interface User {
-                username: string;
-                password: string;
-                user_type: string;
-            };
-
             const res = await fetch('http://localhost:8000/api/login', {
                 method: 'POST',
                 headers: {
@@ -108,13 +125,20 @@ const SignIn = ( {setShowNavBar} : {setShowNavBar: React.Dispatch<React.SetState
                 },
                 body: JSON.stringify({username, password})
             });
-            if (res.status === 201) {
+            if (res.status === 200) {
                 const userJSON : User = await res.json();
+                console.log(userJSON);
                 if (userJSON.user_type === "student") {
-                    navigate("/dashboard");
+                    navigate("/home");
                 } else if (userJSON.user_type === "professor") {
-                    navigate("/dashboard");
-                } 
+                    navigate("/home");
+                }
+
+            } else{
+                setShowError(true);
+                setTimeout(() => {
+                    setShowError(false);
+                }, 3000);
             }
         } catch (err) {
             console.error(err);
@@ -133,6 +157,9 @@ const SignIn = ( {setShowNavBar} : {setShowNavBar: React.Dispatch<React.SetState
             <RightContainer>
             <FormContainer>
                 <h1>Sign In</h1>
+                <AlertContainer>
+                    <UserNotFound/>
+                </AlertContainer>
                 <Label>Username</Label>
                 <StyledInput onChange={(e) => setUsername(e.target.value)} type="text" placeholder="Username" />
                 <Label>Password</Label>

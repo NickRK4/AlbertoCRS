@@ -7,7 +7,6 @@ import Navbar from './Components/Navbar.tsx';
 import { useState } from 'react';
 
 function App() {
-
   const [showNavbar, setShowNavbar] = useState(true);
   return (
     <>
@@ -15,8 +14,8 @@ function App() {
     <GlobalStyle />
     <Router>
       <Routes>
-        <Route path="/login" element={<SignIn setShowNavBar={setShowNavbar}/>} />    
-        <Route path="/home" element={<Dashboard />} />
+        <Route path="/login" element={<SignIn setShowNavBar={setShowNavbar}/>} />
+        <Route path="/home" element={<Dashboard setShowNavBar={setShowNavbar}/>} />
       </Routes>
     </Router>
     </>
