@@ -111,8 +111,17 @@ export default function Navbar() {
           <BurgerButton onClick={() => setMenuOpen(!menuOpen)}>☰</BurgerButton>
           {menuOpen && (
             <DropdownMenu ref={menuRef}>
-              <MenuItem>Classes</MenuItem>
-              <MenuItem>Register</MenuItem>
+              <MenuItem
+              onClick={() => {
+                navigate("/home");
+                setMenuOpen(false);
+              }}
+              >Classes</MenuItem>
+              <MenuItem
+              onClick={() =>{
+                navigate("/register");
+                setMenuOpen(false);
+              }}>Register</MenuItem>
               <MenuItem>Reports</MenuItem>
             </DropdownMenu>
           )}

@@ -1,16 +1,18 @@
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useState } from 'react';
 import styled from 'styled-components';
 
+
 const PageContainer = styled.div`
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 100px;
 `;
 
 const FormContainer = styled.form`
+    font-size: 18px;
     background: white;
-    padding: 32px;
+    padding: 50px;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     width: 100%;
@@ -63,7 +65,7 @@ const Button = styled.button`
     cursor: pointer;
 `;
 
-export default function CreateUser() {
+export default function CreateUser({setShowNavBar}: {setShowNavBar: React.Dispatch<React.SetStateAction<boolean>>}) { 
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -72,25 +74,24 @@ export default function CreateUser() {
     user_type: '',
   });
 
+  useLayoutEffect(() => {
+    setShowNavBar(true);
+  }, []);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // extracts the name and value of the input
     const { name, value } = e.target;
-    console.log(name);
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     const { first_name, last_name, email, password, user_type } = formData;
     if (!first_name || !last_name || !email || !password || !user_type) {
       alert("Please fill in all fields.");
       return;
     }
 
-    console.log(formData);
-
-    /*
     try {
       const response = await fetch('http://localhost:8000/api/add', {
         method: 'POST',
@@ -99,20 +100,18 @@ export default function CreateUser() {
         },
         body: JSON.stringify(formData)
       });
-
       if (response.status === 201) {
         alert("User created successfully!");
       }
     } catch (err) {
       console.error(err);
     }
-    */
   };
 
   return (
     <PageContainer>
       <FormContainer onSubmit={handleSubmit}>
-        <FormTitle>Create Profile</FormTitle>
+        <FormTitle>Register User</FormTitle>
         <label htmlFor="user_type">User Type:</label>
         <RadioGroup>
         <RadioLabel>
@@ -168,7 +167,6 @@ export default function CreateUser() {
           placeholder="Password"
           onChange={handleChange}
         />
-
         <Button type="submit">Create User</Button>
       </FormContainer>
     </PageContainer>

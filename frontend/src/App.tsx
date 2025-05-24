@@ -4,6 +4,7 @@ import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router';
 import Dashboard from './Components/Dashboard.tsx';
 import Navbar from './Components/Navbar.tsx';
+import Register from './Components/Register.tsx';
 import { useState } from 'react';
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<SignIn setShowNavBar={setShowNavbar}/>} />
         <Route path="/home" element={<Dashboard setShowNavBar={setShowNavbar}/>} />
+        <Route path="/register" element={<Register setShowNavBar={setShowNavbar}/>} />
       </Routes>
     </Router>
     </>

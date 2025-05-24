@@ -120,7 +120,6 @@ export default function Dashboard( {setShowNavBar} : {setShowNavBar: React.Dispa
         }
     }
 
-
     const getData = async () => {
         //setLoading(true);
         try {
@@ -208,14 +207,12 @@ export default function Dashboard( {setShowNavBar} : {setShowNavBar: React.Dispa
     </Box>
   );
     
-
     // renders the page
     if (loading) {
         return (
             <h1>Loading...</h1>
         )
     }
-
     return (
         <>
         <Drawer
@@ -251,4 +248,5 @@ export default function Dashboard( {setShowNavBar} : {setShowNavBar: React.Dispa
         </TableContainer>
         </>
         );
+        // ADD CLASS CREATION LATER
     };

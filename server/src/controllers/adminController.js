@@ -67,29 +67,27 @@ export const getAllCourses = async (req, res, next) => {
 
 // add a new student to the students database
 export const addUser = async (req, res, next) => {
-    //const user = req.body;
-    const user = {
-        first_name: req.body.first_name,
-        last_name: req.body.last_name,
-        email: req.body.email,
-        password: req.body.password,
-        user_type: req.body.user_type
-    };
+    try {
+        const user = {
+            first_name: req.body.first_name,
+            last_name: req.body.last_name,
+            email: req.body.email,
+            password: req.body.password,
+            user_type: req.body.user_type
+        };
 
-    const newUser = await pool.query(
-        `INSERT INTO students (first_name, last_name, email, password, user_type)
-        VALUES ('${user.first_name}', '${user.last_name}', '${user.email}', '${user.password}', '${user.user_type}') RETURNING *`
-    );
-    
-    if (!newUser) {
-        const err = new Error('User not created');
-        err.status = 500;
-        return next(err);
+        const newUser = await pool.query(
+            `INSERT INTO users (first_name, last_name, email, password_hash, user_type)
+            VALUES ('${user.first_name}', '${user.last_name}', '${user.email}', '${user.password}', '${user.user_type}');`
+        );
+
+        res.status(201).json({
+            message: 'User created',
+            user: newUser
+        });
+    } catch (err) {
+        console.log(err);
     }
-    res.status(201).json({
-        message: 'User created',
-        user: newUser
-    });
 }
 
 // retrieves data by the username and password
@@ -102,6 +100,12 @@ export const login = async (req, res, next) => {
         err.status = 404;
         return next(err);
     }
+    if (req.body.password !== data.password_hash) {
+        const err = new Error('Incorrect password');
+        err.status = 401;
+        return next(err);
+    }
+
     res.status(200).json(data);
 };
 

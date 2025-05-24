@@ -136,6 +136,7 @@ const SignIn = ( {setShowNavBar} : {setShowNavBar: React.Dispatch<React.SetState
                 },
                 body: JSON.stringify({username, password})
             });
+
             if (res.status === 200) {
                 const userJSON : User = await res.json();
                 console.log(userJSON);
@@ -144,7 +145,6 @@ const SignIn = ( {setShowNavBar} : {setShowNavBar: React.Dispatch<React.SetState
                 } else if (userJSON.user_type === "professor") {
                     navigate("/home");
                 }
-
             } else{
                 setError("Username or password is incorrect.");
                 setShowError(true);

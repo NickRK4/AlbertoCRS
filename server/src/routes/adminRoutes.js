@@ -3,7 +3,7 @@ import { getAllUsers, getUserWithID, addUser, login, getAllCourses, getStudentsB
 const router = express.Router();
 
 // add new student
-router.get('/add', addUser);
+router.post('/add', addUser);
 
 // get student by email and password
 router.post('/login', login);
