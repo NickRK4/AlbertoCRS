@@ -181,12 +181,14 @@ export default function Dashboard( {setShowNavBar} : {setShowNavBar: React.Dispa
                 <TagItem>Capacity: {selectedClass.capacity}</TagItem>
             </TagList>
             <Title>Student List</Title>
+            {students.length === 0 && <p>No students found for this class</p>}
+            {students.length > 0 && (
             <Table sx={{ }} aria-label="customized table">
             <TableHead>
                 <StyledTableRow>
                     <StyledTableCell align="left">First Name</StyledTableCell>
                     <StyledTableCell align="left">Last Name</StyledTableCell>
-                    <StyledTableCell align="left">Last Name</StyledTableCell>
+                    <StyledTableCell align="left">Email Address</StyledTableCell>
                 </StyledTableRow>
             </TableHead>
             <TableBody>
@@ -199,7 +201,7 @@ export default function Dashboard( {setShowNavBar} : {setShowNavBar: React.Dispa
                 ))}
             </TableBody>
             </Table>
-            
+            )}
             </>
         )}
         </DrawerContainer>
@@ -215,7 +217,7 @@ export default function Dashboard( {setShowNavBar} : {setShowNavBar: React.Dispa
     }
 
     return (
-        <div>
+        <>
         <Drawer
             anchor={"left"}
             open={state["left"]}
@@ -247,6 +249,6 @@ export default function Dashboard( {setShowNavBar} : {setShowNavBar: React.Dispa
             </TableBody>
             </Table>
         </TableContainer>
-        </div>
+        </>
         );
     };

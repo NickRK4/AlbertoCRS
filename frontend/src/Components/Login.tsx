@@ -99,6 +99,7 @@ interface User {
 const SignIn = ( {setShowNavBar} : {setShowNavBar: React.Dispatch<React.SetStateAction<boolean>>} ) => {
     const [ username, setUsername ] = useState("");
     const [ password, setPassword ] = useState("");
+    const [ error, setError ] = useState("");
     const [ showError , setShowError ] = useState(false);
     const navigate = useNavigate();
 
@@ -111,12 +112,22 @@ const SignIn = ( {setShowNavBar} : {setShowNavBar: React.Dispatch<React.SetState
           return null;
         }
         return (
-            <p>Username or password is incorrect</p>
+            <p>{error}</p>
         );
       }
 
     const handleSubmit = async (e : React.FormEvent) => {
         e.preventDefault();
+
+        if (!username || !password) {
+            setError("Please fill in all fields.");
+            setShowError(true);
+            setTimeout(() => {
+                setShowError(false);
+            }, 3000);
+            return;
+        }
+
         try {
             const res = await fetch('http://localhost:8000/api/login', {
                 method: 'POST',
@@ -135,6 +146,7 @@ const SignIn = ( {setShowNavBar} : {setShowNavBar: React.Dispatch<React.SetState
                 }
 
             } else{
+                setError("Username or password is incorrect.");
                 setShowError(true);
                 setTimeout(() => {
                     setShowError(false);
