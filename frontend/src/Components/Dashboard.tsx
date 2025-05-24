@@ -7,14 +7,11 @@ import TableRow from '@mui/material/TableRow';
 import { styled as style } from "styled-components";
 import { useState, useEffect, useLayoutEffect } from 'react';
 import { Box, Drawer } from '@mui/material';
-import React from 'react';
 
 const DrawerContainer = style.div`
     display: flex;
     flex-direction: column;
     padding: 40px 20px;
-    justify-content: flex-start;
-    align-items: flex-start;
 `;
 
 const Title = style.h2`
@@ -23,12 +20,14 @@ const Title = style.h2`
     color: #44296F;
     margin-bottom: 20px;
     text-align: left;
+    margin-top: 10px;
 `;
 
 const TagList = style.div`
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
+    margin-bottom: 30px;
 `;
 
 const TagItem = style.div`
@@ -114,13 +113,10 @@ export default function Dashboard( {setShowNavBar} : {setShowNavBar: React.Dispa
                 throw new Error('Failed to fetch data');
             }
             const data = await res.json();
-            console.log(data);
             setStudents(data);
-            setLoading(false);
+            console.log(data);
         } catch (err) {
             console.log(err);
-        } finally {
-            setLoading(false);
         }
     }
 
@@ -168,11 +164,6 @@ export default function Dashboard( {setShowNavBar} : {setShowNavBar: React.Dispa
     };
 
   const list = (anchor: Anchor) => (
-    // load the class information
-    
-
-
-
     <Box
       sx={{ width: "40vw", minWidth: 500 }}
       role="presentation"
@@ -189,7 +180,26 @@ export default function Dashboard( {setShowNavBar} : {setShowNavBar: React.Dispa
                 <TagItem>Class Size: {selectedClass.size}</TagItem>
                 <TagItem>Capacity: {selectedClass.capacity}</TagItem>
             </TagList>
-
+            <Title>Student List</Title>
+            <Table sx={{ }} aria-label="customized table">
+            <TableHead>
+                <StyledTableRow>
+                    <StyledTableCell align="left">First Name</StyledTableCell>
+                    <StyledTableCell align="left">Last Name</StyledTableCell>
+                    <StyledTableCell align="left">Last Name</StyledTableCell>
+                </StyledTableRow>
+            </TableHead>
+            <TableBody>
+                {students.map((student: any) => (
+                    <StyledTableRow key={student.email}>
+                        <StyledTableCell align="left">{student.first_name}</StyledTableCell>
+                        <StyledTableCell align="left">{student.last_name}</StyledTableCell>
+                        <StyledTableCell align="left">{student.email}</StyledTableCell>
+                    </StyledTableRow>
+                ))}
+            </TableBody>
+            </Table>
+            
             </>
         )}
         </DrawerContainer>

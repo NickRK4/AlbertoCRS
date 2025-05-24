@@ -86,14 +86,14 @@ export const addUser = async (req, res, next) => {
         err.status = 500;
         return next(err);
     }
-    res.status(200).json({
+    res.status(201).json({
         message: 'User created',
         user: newUser
     });
 }
 
 // retrieves data by the username and password
-export const getUserByUserPass = async (req, res, next) => {
+export const login = async (req, res, next) => {
     const user = req.body;
     const userDetails = await pool.query(`SELECT first_name, last_name, user_type, password_hash FROM users WHERE email = '${user.username}';`);
     const data = userDetails.rows.at(0);

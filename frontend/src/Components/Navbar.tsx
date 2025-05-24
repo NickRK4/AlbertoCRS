@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const StyledHeader = styled.div`
   display: flex;
@@ -86,6 +87,7 @@ const SignOutButton = styled.button`
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   // Close menu on outside click
   useEffect(() => {
@@ -101,6 +103,7 @@ export default function Navbar() {
     };
   }, []);
 
+
   return (
     <>
       <StyledHeader>
@@ -108,7 +111,7 @@ export default function Navbar() {
           <BurgerButton onClick={() => setMenuOpen(!menuOpen)}>☰</BurgerButton>
           {menuOpen && (
             <DropdownMenu ref={menuRef}>
-              <MenuItem>Classroom</MenuItem>
+              <MenuItem>Classes</MenuItem>
               <MenuItem>Register</MenuItem>
               <MenuItem>Reports</MenuItem>
             </DropdownMenu>
@@ -118,7 +121,11 @@ export default function Navbar() {
           <h1>Course Registration System</h1>
         </MiddleDiv>
         <RightDiv>
-          <SignOutButton>Sign Out</SignOutButton>
+          <SignOutButton
+            onClick={() => {
+              navigate("/login");
+            }}
+          >Sign Out</SignOutButton>
         </RightDiv>
       </StyledHeader>
     </>

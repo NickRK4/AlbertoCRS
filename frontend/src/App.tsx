@@ -10,9 +10,9 @@ function App() {
   const [showNavbar, setShowNavbar] = useState(true);
   return (
     <>
-    {showNavbar && <Navbar />}
     <GlobalStyle />
     <Router>
+      {showNavbar && <Navbar />}
       <Routes>
         <Route path="/login" element={<SignIn setShowNavBar={setShowNavbar}/>} />
         <Route path="/home" element={<Dashboard setShowNavBar={setShowNavbar}/>} />
