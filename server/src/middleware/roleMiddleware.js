@@ -11,3 +11,5 @@ const authorizeRoles = (...allowedRoles) => {
             next();
         };
     };
+
+export default authorizeRoles;

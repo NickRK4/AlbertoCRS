@@ -117,7 +117,7 @@ export default function Dashboard( {setShowNavBar} : {setShowNavBar: React.Dispa
     const [ students, setStudents ] = useState([] as Student[]);
     const [ selectedClasses, setSelectedClasses ] = useState([] as number[]);
     const [ search, setSearch ] = useState("");
-    const { user } = useAuth();
+    const { user, token } = useAuth();
 
     useLayoutEffect(() => {
         setShowNavBar(true);
@@ -128,7 +128,8 @@ export default function Dashboard( {setShowNavBar} : {setShowNavBar: React.Dispa
             const res = await fetch(`http://localhost:8000/api/admin/class/${id}`, {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 }
             });
             if (res.status !== 200) {
@@ -148,7 +149,8 @@ export default function Dashboard( {setShowNavBar} : {setShowNavBar: React.Dispa
             const res = await fetch('http://localhost:8000/api/admin/courses', {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 }
             });
             if (res.status !== 200) {
@@ -251,7 +253,6 @@ export default function Dashboard( {setShowNavBar} : {setShowNavBar: React.Dispa
                 <h1>Loading...</h1>
             )
         }
-
 
         return (
             <>

@@ -1,4 +1,3 @@
-import axios from "axios";
 import { User } from "../Models/User";
 
 export const loginAPI = async ( email: string, password: string ) => {
@@ -10,8 +9,8 @@ export const loginAPI = async ( email: string, password: string ) => {
             },
             body: JSON.stringify({ email, password })
         });
-
         const data = await response.json();
+
         return { data };
     } catch (err) {
         console.log(err);
