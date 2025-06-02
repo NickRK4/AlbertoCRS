@@ -3,6 +3,11 @@ import bcrypt from 'bcryptjs';
 import db from '../config/dbPool.js';
 
 
+
+
+
+
+
 // returns all the student
 export const getAllUsers = async (req, res, next) => {
     const users = await db.query('SELECT * FROM users');

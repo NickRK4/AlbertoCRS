@@ -3,7 +3,7 @@ import { User } from "../Models/User";
 
 export const loginAPI = async ( email: string, password: string ) => {
     try {
-        const response = await fetch('http://localhost:8000/api/login', {
+        const response = await fetch('http://localhost:8000/api/auth/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

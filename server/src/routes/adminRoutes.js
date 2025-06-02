@@ -1,5 +1,8 @@
 import express from 'express';
 import { getAllUsers, getUserWithID, createUser, getAllCourses, getStudentsByClass, createClass } from '../controllers/adminController.js';
+import verifyToken from '../middleware/authMiddleware.js';
+import { verify } from 'crypto';
+
 const adminRouter = express.Router();
 
 // add new student
@@ -12,7 +15,7 @@ adminRouter.post('/class', createClass);
 adminRouter.get('/courses', getAllCourses)
 
 // for all students
-adminRouter.get('/allStudents', getAllUsers);
+adminRouter.get('/allStudents', verifyToken, getAllUsers);
 
 // for specific class
 adminRouter.get('/class/:id', getStudentsByClass);

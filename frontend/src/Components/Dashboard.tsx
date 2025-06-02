@@ -125,7 +125,7 @@ export default function Dashboard( {setShowNavBar} : {setShowNavBar: React.Dispa
 
     const getClassData = async (id: number) => {
         try {
-            const res = await fetch(`http://localhost:8000/api/class/${id}`, {
+            const res = await fetch(`http://localhost:8000/api/admin/class/${id}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -145,7 +145,7 @@ export default function Dashboard( {setShowNavBar} : {setShowNavBar: React.Dispa
         //setLoading(true);
         try {
             setLoading(true);
-            const res = await fetch('http://localhost:8000/api/courses', {
+            const res = await fetch('http://localhost:8000/api/admin/courses', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
