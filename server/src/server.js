@@ -1,8 +1,18 @@
 import express from 'express';
 import logger from './middleware/logger.js';
 import adminRouter from './routes/adminRoutes.js';
+import authRouter from './routes/authRoutes.js';
 import errorHandler from './errors/errors.js';
 import cors from 'cors';
+import db from './config/dbPool.js';
+
+// connect to database
+try {
+    await db.connect();
+    console.log('Connected to database');
+} catch (error) {
+    console.error('Error connecting to database:', error);
+}
 
 const app = express();
 const port = process.env.PORT || 8080;
@@ -17,9 +27,8 @@ app.use(express.urlencoded({extended: true}));
 app.use(logger);
 
 // set up routers
+app.use('/api/auth', authRouter)
 app.use('/api/admin', adminRouter);
-app.use('/api/user', userRouter);
-
 
 app.use((req, res, next) => {
     const error = new Error('Not Found');

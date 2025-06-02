@@ -1,46 +1,11 @@
-import pg from 'pg';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-const { Pool } = pg;
-
-const pool = new Pool({
-    user: process.env.PGUSER,
-    password: process.env.PGPASSWORD,
-    host: process.env.PGHOST,
-    database: process.env.PGDATABASE,
-    port: process.env.PGPORT,
-}); 
-
-await pool.connect()
-    .then(() => {
-        console.log('Connected to database');
-    })
-    .catch((error) => {
-        console.error('Error connecting to database:', error);
-    });
-
-
-    const verifyToken = (req, res, next) => {
-        const token = req.headers.authorization;
-        if (!token) {
-            return res.status(401).json({ message: 'Unauthorized' });
-        }
-
-        jwt.verify(token, 'secret', (err, decoded) => {
-            if (err) {
-                return res.status(401).json({ message: 'Unauthorized' });
-            }
-            req.user = decoded;
-            next();
-        });
-
-    }
-
+import db from '../config/dbPool.js';
 
 
 // returns all the student
 export const getAllUsers = async (req, res, next) => {
-    const users = await pool.query('SELECT * FROM users');
+    const users = await db.query('SELECT * FROM users');
     if (!users) {
         const error = new Error('No users found');
         return next(error);
@@ -51,7 +16,7 @@ export const getAllUsers = async (req, res, next) => {
 // returns studens with id = ID
 export const getUserWithID = async (req, res, next) => {
     const id = req.params.id;
-    const user = await pool.query(`SELECT * FROM users WHERE user_id = ${id}`);
+    const user = await db.query(`SELECT * FROM users WHERE user_id = ${id}`);
     if (user.length === 0) {
         const err = new Error(`User with id ${id} not found`);
         err.status = 404;
@@ -64,7 +29,7 @@ export const getUserWithID = async (req, res, next) => {
 // returns all the courses with the professor name
 export const getAllCourses = async (req, res, next) => {
     try{
-        const courses = await pool.query(`SELECT classes.class_id, 
+        const courses = await db.query(`SELECT classes.class_id, 
                                         classes.class_code, 
                                         classes.class_name, 
                                         classes.size, 
@@ -88,7 +53,7 @@ export const getAllCourses = async (req, res, next) => {
 export const createUser = async (req, res, next) => {
     try {
         // check if the user exists
-        const existingUser = await pool.query(`SELECT * FROM users WHERE email = '${req.body.email}';`);
+        const existingUser = await db.query(`SELECT * FROM users WHERE email = '${req.body.email}';`);
         if (user.length > 0) {
             const err = new Error('User already exists');
             err.status = 409;
@@ -119,39 +84,11 @@ export const createUser = async (req, res, next) => {
     }
 }
 
-// retrieves data by the username and password
-export const login = async (req, res, next) => {
-    try {
-        const user = await pool.query(`SELECT first_name, last_name, email, user_type, password_hash FROM users WHERE email = '${req.body.email + "@gmail.com"}';`);
-        const data = user.rows.at(0);
-
-        if (!data) {
-            const err = new Error('Incorrect username or password');
-            err.status = 404;
-            return next(err);
-        }
-            
-        if (data.password_hash !== req.body.password) {
-            const err = new Error('Incorrect password');
-            err.status = 401;
-            return next(err);
-        }
-
-        const payload = { firstName: data.first_name, lastName: data.last_name, email: data.email, user_type: data.user_type };
-        const token = jwt.sign(payload, 'secret', { expiresIn: '1h' });
-        res.status(200).json({ success: true, token });
-    }
-    catch (err) {
-        console.log(err);
-        res.status(500).json({ success: false, message: 'Something went wrong' });
-    }
-}
-
 
 // retrieves the student data by the class
 export const getStudentsByClass = async (req, res, next) => {
     const class_id = req.params.id;
-    const students = await pool.query(`SELECT first_name, last_name, email 
+    const students = await db.query(`SELECT first_name, last_name, email 
                                 FROM users INNER JOIN classlist ON users.user_id = classlist.user_id
                                 WHERE classlist.class_id = ${class_id}
                                 AND users.user_type = 'student';`);
@@ -175,7 +112,7 @@ export const createClass = async (req, res, next) => {
         };
         
         // need to find the id of the professor
-        const professor = await pool.query(`SELECT (user_id)
+        const professor = await db.query(`SELECT (user_id)
                                             FROM users
                                             WHERE CONCAT(first_name, ' ', last_name) = '${req.body.professor}';`);
         classData.professor_id = professor.rows.at(0).user_id;
@@ -186,7 +123,7 @@ export const createClass = async (req, res, next) => {
             return next(err);
         }
 
-        const newClass = await pool.query(
+        const newClass = await db.query(
             `INSERT INTO classes (class_code, class_name, professor_id, size, capacity)
             VALUES ('${classData.class_code}', 
             '${classData.class_name}', 

@@ -1,27 +1,24 @@
 import express from 'express';
-import { getAllUsers, getUserWithID, createUser, login, getAllCourses, getStudentsByClass, createClass } from '../controllers/adminController.js';
+import { getAllUsers, getUserWithID, createUser, getAllCourses, getStudentsByClass, createClass } from '../controllers/adminController.js';
 const adminRouter = express.Router();
 
 // add new student
-router.post('/add', createUser);
+adminRouter.post('/add', createUser);
 
 // create a new class
-router.post('/class', createClass);
-
-// get student by email and password
-router.post('/login', login);
+adminRouter.post('/class', createClass);
 
 // returns all the courses
-router.get('/courses', getAllCourses)
+adminRouter.get('/courses', getAllCourses)
 
 // for all students
-router.get('/allStudents', getAllUsers);
+adminRouter.get('/allStudents', getAllUsers);
 
 // for specific class
-router.get('/class/:id', getStudentsByClass);
+adminRouter.get('/class/:id', getStudentsByClass);
 
 // for specific student
-router.get('/:id', getUserWithID);
+adminRouter.get('/:id', getUserWithID);
 
 
-export default router;
+export default adminRouter;
