@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import React, { useLayoutEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "../Context/useAuth";
+import { loginAPI } from "../Services/AuthServices";
 
 const Container = styled.div`
     color: white;
@@ -89,19 +90,12 @@ const AlertContainer = styled.div`
 `;
 
 
-interface User {
-    username: string;
-    password: string;
-    user_type: string;
-};
-
-
 const SignIn = ( {setShowNavBar} : {setShowNavBar: React.Dispatch<React.SetStateAction<boolean>>} ) => {
     const [ username, setUsername ] = useState("");
     const [ password, setPassword ] = useState("");
     const [ error, setError ] = useState("");
     const [ showError , setShowError ] = useState(false);
-    const navigate = useNavigate();
+    const { loginUser } = useAuth();
 
     useLayoutEffect(() => {
         setShowNavBar(false);
@@ -127,33 +121,27 @@ const SignIn = ( {setShowNavBar} : {setShowNavBar: React.Dispatch<React.SetState
             }, 3000);
             return;
         }
-
+        
         try {
-            const res = await fetch('http://localhost:8000/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({username, password})
-            });
-
-            if (res.status === 200) {
-                const userJSON : User = await res.json();
-                console.log(userJSON);
-                if (userJSON.user_type === "student") {
-                    navigate("/home");
-                } else if (userJSON.user_type === "professor") {
-                    navigate("/home");
-                }
-            } else{
-                setError("Username or password is incorrect.");
+            const response = await loginAPI(username, password);
+            
+            if (!response?.data.success) {
+                setError(response?.data.message);
                 setShowError(true);
                 setTimeout(() => {
                     setShowError(false);
-                }, 3000);
+                }, 2000);
+                return;
             }
+
+            loginUser(username, password);
         } catch (err) {
-            console.error(err);
+            console.log(err);
+            setError("Something went wrong");
+            setShowError(true);
+            setTimeout(() => {
+                setShowError(false);
+            }, 2000);
         }
     }
     return (

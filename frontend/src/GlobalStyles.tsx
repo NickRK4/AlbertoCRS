@@ -29,7 +29,16 @@ const GlobalStyle = createGlobalStyle`
     &:hover {
       cursor: pointer;
     }
+  }
 
+  input {
+    user-select: none;
+    &:active {
+      outline: none;
+    }
+    &:focus {
+      outline: none;
+    }
   }
 
 

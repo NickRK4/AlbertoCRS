@@ -6,7 +6,17 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import { styled as style } from "styled-components";
 import { useState, useEffect, useLayoutEffect } from 'react';
-import { Box, Drawer } from '@mui/material';
+import { Box, Drawer, Checkbox } from '@mui/material';
+import { Student } from "../Models/User";
+import { Course } from "../Models/Course";
+import { useAuth } from "../Context/useAuth";
+
+const PageContainer = style.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0px 20px;
+`;
 
 const DrawerContainer = style.div`
     display: flex;
@@ -21,6 +31,14 @@ const Title = style.h2`
     margin-bottom: 20px;
     text-align: left;
     margin-top: 10px;
+`;
+
+const TableTitle = style.h1`
+    font-size: 40px;
+    font-weight: bold;
+    color: #44296F;
+    margin-bottom: 20px;
+    text-align: left;
 `;
 
 const TagList = style.div`
@@ -43,17 +61,28 @@ const TagItem = style.div`
 `;
 
 const TableContainer = style.div`
-    margin-top: 50px;
+    width: 90%;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
 `;
 
+const SearchBar = style.input`
+    align-self: flex-end;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;`
+
+
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
+    maxWidth: '100px',
     [`&.${tableCellClasses.head}`]: {
         backgroundColor: '#44296F',
         fontWeight: 'bold',
         color: theme.palette.common.white,
+        fontSize: 14
     },
     [`&.${tableCellClasses.body}`]: {
         fontSize: 14,
@@ -77,16 +106,6 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
     },
 }));
 
-type Course = {
-    class_id: number;
-    class_code: number;
-    class_name: string;
-    size: number;
-    capacity: number;
-    professor: string;
-}
-
-type Anchor = 'top' | 'left' | 'bottom' | 'right';
 
 export default function Dashboard( {setShowNavBar} : {setShowNavBar: React.Dispatch<React.SetStateAction<boolean>>}) {
     const [loading, setLoading] = useState(false);
@@ -95,7 +114,10 @@ export default function Dashboard( {setShowNavBar} : {setShowNavBar: React.Dispa
         left: false
     })
     const [ selectedClass, setSelectedClass ] = useState({} as Course);
-    const [ students, setStudents ] = useState([]);
+    const [ students, setStudents ] = useState([] as Student[]);
+    const [ selectedClasses, setSelectedClasses ] = useState([] as number[]);
+    const [ search, setSearch ] = useState("");
+    const { user } = useAuth();
 
     useLayoutEffect(() => {
         setShowNavBar(true);
@@ -114,7 +136,6 @@ export default function Dashboard( {setShowNavBar} : {setShowNavBar: React.Dispa
             }
             const data = await res.json();
             setStudents(data);
-            console.log(data);
         } catch (err) {
             console.log(err);
         }
@@ -141,112 +162,156 @@ export default function Dashboard( {setShowNavBar} : {setShowNavBar: React.Dispa
         } finally {
             setLoading(false);
         }
+    };
+
+    const filteredClasses = classes.filter((course: Course) => {
+        if (search === "") {
+            return true;
+        } else {
+            return course.class_name.toLowerCase().includes(search.toLowerCase());
+        }
+    });
+
+    const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearch(event.target.value);
+    };
+
+    const handleDrawerClose = () => {
+        // blurs everything in the side bar
+        if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+        }
+        setState({ ...state, left: false });
     }
 
+
     useEffect(() => {
+        // loads all the classes
         getData();
     }, []);
 
-    const toggleDrawer =
-    (anchor: Anchor, open: boolean, selected : Course) =>
-    (event: React.KeyboardEvent | React.MouseEvent) => {
-      if (
-        event.type === 'keydown' &&
-        ((event as React.KeyboardEvent).key === 'Tab' ||
-          (event as React.KeyboardEvent).key === 'Shift')
-      ) {
-        return;
-      }
-      setState({ ...state, [anchor]: open });
-      setSelectedClass(selected);
-      getClassData(selected.class_id);
+
+    // whenever a user clicks on the class
+    const handleRowClick = (selected: Course) => {
+        setSelectedClass(selected);
+        getClassData(selected.class_id);
+        if (selectedClasses.length === 0) {
+            setTimeout(() => {
+            setState({ ...state, left: true });
+            }, 40);
+        }
     };
 
-  const list = (anchor: Anchor) => (
-    <Box
-      sx={{ width: "40vw", minWidth: 500 }}
-      role="presentation"
-      onClick={toggleDrawer(anchor, false, selectedClass)}
-      onKeyDown={toggleDrawer(anchor, false, selectedClass)}
-    >
-        <DrawerContainer>
-        {selectedClass && (
-            <>
-            <Title>{selectedClass.class_name}</Title>
-            <TagList>
-                <TagItem>Class Code: {selectedClass.class_code}</TagItem>
-                <TagItem>Professor: {selectedClass.professor}</TagItem>
-                <TagItem>Class Size: {selectedClass.size}</TagItem>
-                <TagItem>Capacity: {selectedClass.capacity}</TagItem>
-            </TagList>
-            <Title>Student List</Title>
-            {students.length === 0 && <p>No students found for this class</p>}
-            {students.length > 0 && (
-            <Table sx={{ }} aria-label="customized table">
-            <TableHead>
-                <StyledTableRow>
-                    <StyledTableCell align="left">First Name</StyledTableCell>
-                    <StyledTableCell align="left">Last Name</StyledTableCell>
-                    <StyledTableCell align="left">Email Address</StyledTableCell>
-                </StyledTableRow>
-            </TableHead>
-            <TableBody>
-                {students.map((student: any) => (
-                    <StyledTableRow key={student.email}>
-                        <StyledTableCell align="left">{student.first_name}</StyledTableCell>
-                        <StyledTableCell align="left">{student.last_name}</StyledTableCell>
-                        <StyledTableCell align="left">{student.email}</StyledTableCell>
-                    </StyledTableRow>
-                ))}
-            </TableBody>
-            </Table>
-            )}
-            </>
-        )}
-        </DrawerContainer>
-    </Box>
-  );
-    
-    // renders the page
-    if (loading) {
-        return (
-            <h1>Loading...</h1>
-        )
-    }
-    return (
-        <>
-        <Drawer
-            anchor={"left"}
-            open={state["left"]}
-            onClose={toggleDrawer("left", false, selectedClass)}
+    const list = () => (
+        <Box
+        sx={{ width: "40vw", minWidth: 500 }}
+        role="presentation"
         >
-            {list("left")}
-        </Drawer>
-        <TableContainer>
-            <Table sx={{ minWidth: 700, maxWidth: 1900, width: '80%' }} aria-label="customized table">
-            <TableHead>
-                <TableRow>
-                    <StyledTableCell>Course ID</StyledTableCell>
-                    <StyledTableCell align="left">Course Name</StyledTableCell>
-                    <StyledTableCell align="left">Class Size</StyledTableCell>
-                    <StyledTableCell align="left">Capacity</StyledTableCell>
-                    <StyledTableCell align="left">Professor</StyledTableCell>
-                </TableRow>
-            </TableHead>
-            <TableBody>
-                {classes.map((course: Course) => (
-                    <StyledTableRow onClick={toggleDrawer('left', true, course)} key={course.class_id}>
-                        <StyledTableCell align="left">{course.class_id}</StyledTableCell>
-                        <StyledTableCell align="left">{course.class_name}</StyledTableCell>
-                        <StyledTableCell align="left">{course.size}</StyledTableCell>
-                        <StyledTableCell align="left">{course.capacity}</StyledTableCell>
-                        <StyledTableCell align="left">{course.professor}</StyledTableCell>
+            <DrawerContainer>
+            {selectedClass && (
+                <>
+                <Title>{selectedClass.class_name}</Title>
+                <TagList>
+                    <TagItem>Class Code: {selectedClass.class_code}</TagItem>
+                    <TagItem>Professor: {selectedClass.professor}</TagItem>
+                    <TagItem>Class Size: {selectedClass.size}</TagItem>
+                    <TagItem>Capacity: {selectedClass.capacity}</TagItem>
+                </TagList>
+                <Title>Student List</Title>
+                {students.length === 0 && <p>No students found for this class</p>}
+                {students.length > 0 && (
+                <Table sx={{ flexDirection: "column" }} /*aria-label="customized table"*/>
+                <TableHead>
+                    <StyledTableRow>
+                        <StyledTableCell align="left">First Name</StyledTableCell>
+                        <StyledTableCell align="left">Last Name</StyledTableCell>
+                        <StyledTableCell align="left">Email Address</StyledTableCell>
                     </StyledTableRow>
-                ))}
-            </TableBody>
-            </Table>
-        </TableContainer>
-        </>
-        );
-        // ADD CLASS CREATION LATER
+                </TableHead>
+                <TableBody>
+                    {students.map((student: Student) => (
+                        <StyledTableRow key={student.email}>
+                            <StyledTableCell align="left">{student.first_name}</StyledTableCell>
+                            <StyledTableCell align="left">{student.last_name}</StyledTableCell>
+                            <StyledTableCell align="left">{student.email}</StyledTableCell>
+                        </StyledTableRow>
+                    ))}
+                </TableBody>
+                </Table>
+                )}
+                </>
+            )}
+            </DrawerContainer>
+        </Box>
+    );
+
+        // renders the page
+        if (loading) {
+            return (
+                <h1>Loading...</h1>
+            )
+        }
+
+
+        return (
+            <>
+                {user?.user_type === "professor" && (
+                    <>
+                    <PageContainer>
+                    <Drawer
+                        anchor={"left"}
+                        open={state["left"]}
+                        onClose={handleDrawerClose}
+                    >
+                        {list()}
+                    </Drawer>
+                    <TableContainer>
+                        <TableTitle> Course List </TableTitle>
+                        <SearchBar
+                        onChange={handleSearch}
+                        placeholder="Search..." />
+                        <Table /*aria-label="customized table"*/>
+                        <TableHead>
+                            <TableRow>
+                                <StyledTableCell></StyledTableCell>
+                                <StyledTableCell>Course Code</StyledTableCell>
+                                <StyledTableCell align="left">Course Name</StyledTableCell>
+                                <StyledTableCell align="left">Class Size</StyledTableCell>
+                                <StyledTableCell align="left">Capacity</StyledTableCell>
+                                <StyledTableCell align="left">Professor</StyledTableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {filteredClasses.map((course: Course) => (
+                                <StyledTableRow sx={{height: 70}} onClick={() => handleRowClick(course)} key={course.class_id}>
+                                    <StyledTableCell> 
+                                        <Checkbox
+                                        checked={selectedClasses.includes(course.class_id)}
+                                        onClick={(e) => e.stopPropagation()}
+                                        onChange={() => {
+                                            if (selectedClasses.includes(course.class_id)) {
+                                                setSelectedClasses(selectedClasses.filter((id) => id !== course.class_id));
+                                            } else {
+                                                setSelectedClasses([...selectedClasses, course.class_id]);
+                                            }
+                                        }} 
+                                    
+                                        />
+                                    </StyledTableCell>
+                                    <StyledTableCell align="left">{course.class_code}</StyledTableCell>
+                                    <StyledTableCell align="left">{course.class_name}</StyledTableCell>
+                                    <StyledTableCell align="left">{course.size}</StyledTableCell>
+                                    <StyledTableCell align="left">{course.capacity}</StyledTableCell>
+                                    <StyledTableCell align="left">{course.professor}</StyledTableCell>
+                                </StyledTableRow>
+                            ))}
+                        </TableBody>
+                        </Table>
+                    </TableContainer>
+                    </PageContainer>
+                    </>
+                    )
+                }
+            </>
+        )
     };

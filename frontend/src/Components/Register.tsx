@@ -1,22 +1,28 @@
 import React, { useLayoutEffect, useState } from 'react';
 import styled from 'styled-components';
-
+import { User } from '../Models/User';
 
 const PageContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 100px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+    gap: 100px;
+  `
+
+const FormContainer = styled.div`
+    margin: 40px 20px;
+    flex: 1;
+    max-width: 400px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 `;
 
-const FormContainer = styled.form`
-    font-size: 18px;
-    background: white;
-    padding: 50px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 400px;
+const Form = styled.form`
+    display: flex;
+    flex-direction: column;
+    padding: 0px 20px;
+    margin-bottom: 20px;
 `;
 
 const FormTitle = styled.h2`
@@ -35,7 +41,6 @@ const StyledInput = styled.input`
     box-sizing: border-box;
     padding: 10px 15px;
     margin-bottom: 16px;
-    width: 100%;
     border: 1px solid #ccc;
     border-radius: 4px;
 `;
@@ -65,26 +70,49 @@ const Button = styled.button`
     cursor: pointer;
 `;
 
-export default function CreateUser({setShowNavBar}: {setShowNavBar: React.Dispatch<React.SetStateAction<boolean>>}) { 
+type Course = {
+    class_id: number,
+    class_code: string,
+    class_name: string,
+    size: number,
+    capacity: number,
+    professor: string
+}
+
+export default function Register({setShowNavBar}: {setShowNavBar: React.Dispatch<React.SetStateAction<boolean>>}) { 
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
     email: '',
     password: '',
-    user_type: '',
-  });
+    user_type: ''
+  } as User);
+
+  const [ newClass , setNewClass ] = useState({
+        class_code : '',
+        class_name : '',
+        size : 0,
+        capacity : 0,
+        professor : ''
+    } as Course);
 
   useLayoutEffect(() => {
     setShowNavBar(true);
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUser = (e: React.ChangeEvent<HTMLInputElement>) => {
     // extracts the name and value of the input
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleClass = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // extracts the name and value of the input
+    const { name, value } = e.target;
+    setNewClass(prev => ({ ...prev, [name]: value }));
+  }
+
+  const createUser = async (e: React.FormEvent) => {
     e.preventDefault();
     const { first_name, last_name, email, password, user_type } = formData;
     if (!first_name || !last_name || !email || !password || !user_type) {
@@ -108,9 +136,35 @@ export default function CreateUser({setShowNavBar}: {setShowNavBar: React.Dispat
     }
   };
 
+  const createClass = async (event: React.FormEvent) => {
+        try {
+            event.preventDefault();
+            const res = await fetch('http://localhost:8000/api/class', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newClass)
+            });
+
+            if (res.status !== 201) {
+                throw new Error('Failed to create class');
+            }
+            alert("Class created successfully!");
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
+
+
   return (
-    <PageContainer>
-      <FormContainer onSubmit={handleSubmit}>
+    <>
+      <PageContainer>
+      <FormContainer>
+        <Form
+          id="register-form"
+          onSubmit={createUser}>
         <FormTitle>Register User</FormTitle>
         <label htmlFor="user_type">User Type:</label>
         <RadioGroup>
@@ -120,7 +174,7 @@ export default function CreateUser({setShowNavBar}: {setShowNavBar: React.Dispat
               name="user_type"
               value="student"
               checked={formData.user_type === 'student'}
-              onChange={handleChange}
+              onChange={handleUser}
             />
             Student
           </RadioLabel>
@@ -130,7 +184,7 @@ export default function CreateUser({setShowNavBar}: {setShowNavBar: React.Dispat
               name="user_type"
               value="professor"
               checked={formData.user_type === 'professor'}
-              onChange={handleChange}
+              onChange={handleUser}
             />
             Professor
           </RadioLabel>
@@ -141,7 +195,7 @@ export default function CreateUser({setShowNavBar}: {setShowNavBar: React.Dispat
           type="text"
           name="first_name"
           placeholder="First Name"
-          onChange={handleChange}
+          onChange={handleUser}
         />
 
         <Label>Last Name</Label>
@@ -149,7 +203,7 @@ export default function CreateUser({setShowNavBar}: {setShowNavBar: React.Dispat
           type="text"
           name="last_name"
           placeholder="Last Name"
-          onChange={handleChange}
+          onChange={handleUser}
         />
 
         <Label>Email</Label>
@@ -157,7 +211,7 @@ export default function CreateUser({setShowNavBar}: {setShowNavBar: React.Dispat
           type="email"
           name="email"
           placeholder="Email"
-          onChange={handleChange}
+          onChange={handleUser}
         />
 
         <Label>Password</Label>
@@ -165,10 +219,48 @@ export default function CreateUser({setShowNavBar}: {setShowNavBar: React.Dispat
           type="password"
           name="password"
           placeholder="Password"
-          onChange={handleChange}
+          onChange={handleUser}
         />
         <Button type="submit">Create User</Button>
+        </Form>
       </FormContainer>
-    </PageContainer>
+      <FormContainer>
+      <Form
+            onSubmit={createClass}>
+            <FormTitle>Class</FormTitle>
+            <p> Register a new class </p>
+                <Label> Class Code: </Label>
+                <StyledInput 
+                placeholder="e.g. CS-UA 101"
+                type="text" 
+                name="class_code"
+                onChange={handleClass}
+                />
+                <Label> Class Name: </Label>
+                <StyledInput 
+                placeholder="Class Name"
+                type="text" 
+                name="class_name"
+                onChange={handleClass}
+                />
+                <Label> Professor: </Label>
+                <StyledInput 
+                placeholder="Professor Name"
+                type="text" 
+                name="professor"
+                onChange={handleClass}
+                />
+                <Label> Capacity: </Label>
+                <StyledInput
+                placeholder="Capacity"
+                type="number"
+                name="capacity"
+                onChange={handleClass}
+                />
+                <Button type="submit">Create Class</Button>
+        </Form>
+        </FormContainer>
+        </PageContainer>
+    </>
   );
 }

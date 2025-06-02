@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../Context/useAuth";
 
 const StyledHeader = styled.div`
   display: flex;
@@ -88,6 +89,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   // Close menu on outside click
   useEffect(() => {
@@ -131,9 +133,7 @@ export default function Navbar() {
         </MiddleDiv>
         <RightDiv>
           <SignOutButton
-            onClick={() => {
-              navigate("/login");
-            }}
+            onClick={logout}
           >Sign Out</SignOutButton>
         </RightDiv>
       </StyledHeader>

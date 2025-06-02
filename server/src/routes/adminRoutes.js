@@ -1,9 +1,12 @@
 import express from 'express';
-import { getAllUsers, getUserWithID, addUser, login, getAllCourses, getStudentsByClass } from '../controllers/adminController.js';
-const router = express.Router();
+import { getAllUsers, getUserWithID, createUser, login, getAllCourses, getStudentsByClass, createClass } from '../controllers/adminController.js';
+const adminRouter = express.Router();
 
 // add new student
-router.post('/add', addUser);
+router.post('/add', createUser);
+
+// create a new class
+router.post('/class', createClass);
 
 // get student by email and password
 router.post('/login', login);
