@@ -38,6 +38,7 @@ export const UserProvider = ({ children }: Props) => {
         try{
             const response = await loginAPI(email, password);
             if (response?.data?.token) {
+                // save the token from the response
                 const token = response.data.token;
                 localStorage.setItem("token", token);
                 setToken(token);
