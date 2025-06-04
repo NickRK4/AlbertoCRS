@@ -316,8 +316,7 @@ export default function Dashboard( {setShowNavBar} : {setShowNavBar: React.Dispa
 
                 {user?.user_type === "student" && (
                     <>
-                    
-
+                        <p>You are a student</p>
                     </>
                 )}
             </>

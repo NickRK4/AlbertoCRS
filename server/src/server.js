@@ -1,6 +1,6 @@
 import express from 'express';
 import logger from './middleware/logger.js';
-import adminRouter from './routes/adminRoutes.js';
+import userRouter from './routes/userRoutes';
 import authRouter from './routes/authRoutes.js';
 import errorHandler from './errors/errors.js';
 import cors from 'cors';
@@ -28,7 +28,7 @@ app.use(logger);
 
 // set up routers
 app.use('/api/auth', authRouter)
-app.use('/api/admin', adminRouter);
+app.use('/api/admin', userRouter);
 
 app.use((req, res, next) => {
     const error = new Error('Not Found');
