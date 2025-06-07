@@ -11,6 +11,8 @@ import { Box, Drawer, Checkbox, Card, CardContent, Typography, Button, TableCont
 import { Student } from "../Models/User";
 import { Course } from "../Models/Course";
 import { useAuth } from "../Context/useAuth";
+import RegisterClass from './RegisterClass';
+import RegisterStudent from './RegisterStudent';
 
 const PageContainer = style.div`
   display: flex;
@@ -18,6 +20,9 @@ const PageContainer = style.div`
   align-items: center;
   padding: 0px 20px;
   background-color: #F7F7F7;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  height: 93.4vh;
 `;
 
 const DrawerContainer = style.div`
@@ -34,10 +39,12 @@ const ContentContainer = style.div`
 `
 
 const ActionContainer = style.div`
+    padding: 20px;
     display: flex;
-    flex-direction: row;
-    margin-bottom: 20px;
+    flex-direction: column;
     gap: 20px;
+    width: 170px;
+    margin-right: 20px;
 `;
 
 const Title = style.h2`
@@ -89,7 +96,9 @@ const SearchBar = style.input`
 const CardContainer = style.div`
     display: flex;
     flex-direction: row;
-    gap: 90px;
+    align-items: center;
+    margin-top: 40px;
+    margin-bottom: 40px;
 `
 
 const PieChartContainer = style.div`
@@ -201,7 +210,6 @@ export default function Dashboard() {
         setState({ ...state, left: false });
     }
 
-
     useEffect(() => {
         // loads all the classes
         getData();
@@ -286,7 +294,8 @@ export default function Dashboard() {
                     >
                         {list()}
                     </Drawer>
-                    <Title style={{ marginBottom: "0" }}>Welcome back, {user?.first_name}</Title>
+                    <Title style={{ marginTop: "30px", marginBottom: "0" }}>Welcome back, {user?.first_name}</Title>
+                    <ContentContainer>
                     <CardContainer>
                         <Card sx={{ minWidth: 150, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
                             <CardContent>
@@ -328,28 +337,18 @@ export default function Dashboard() {
                                 </Typography>
                             </CardContent>
                         </Card>
-                        <Card sx={{ minWidth: 150, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
-                            <CardContent>
-                                <Typography variant="h3" color="#43296E" fontSize="32px">
-                                    0
-                                </Typography>
-                                <Typography fontWeight="bold" color="#43296E" fontSize="16px" variant="h6" component="div">
-                                    Topics
-                                </Typography>
-                            </CardContent>
-                        </Card>
+                        <ActionContainer>
+                        <Button style={{ backgroundColor: "#695ACD", boxShadow: "none"}} variant="contained" >Create Class</Button>
+                        <Button style={{ backgroundColor: "#695ACD", boxShadow: "none"}} variant="contained" >Register User</Button>
+                        </ActionContainer>
                     </CardContainer>
-                    <Title style={{ marginTop: "10px" }}>Actions</Title>
-                    <ActionContainer>
-                        <Button style={{ backgroundColor: "#43296E" }} variant="contained" >Create Class</Button>
-                        <Button style={{ backgroundColor: "#43296E" }} variant="contained" >Register User</Button>
-                    </ActionContainer>
+                    </ContentContainer>
                     <ContentContainer>
                         <TableContainer
                             sx={{
                                 borderRadius: "10px",
                                 boxShadow: 1,
-                                maxHeight: 600,
+                                minHeight: 600,
                                 maxWidth: 1200,
                                 alignSelf: "flex-start",
 
@@ -403,8 +402,8 @@ export default function Dashboard() {
                             </Table>
                             {filteredClasses.length > 0 && (
                                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2, width: '100%' }}>
-                                    {selectedClasses.length === 0 && <Button sx={{ marginRight: 1, marginTop: 1, backgroundColor: '#43296E' }} variant="contained">View Full</Button>}
-                                    <Button sx={{ marginRight: 1, marginTop: 1, backgroundColor: '#43296E' }} variant="contained">Generate Report ({selectedClasses.length})</Button>
+                                    {selectedClasses.length === 0 && <Button sx={{ marginRight: 1, marginTop: 1, backgroundColor: '#695ACD' }} variant="contained">View Full</Button>}
+                                    <Button sx={{ marginRight: 1, marginTop: 1, backgroundColor: '#695ACD' }} variant="contained">Generate Report ({selectedClasses.length})</Button>
                                 </Box>
                             )}
                         </TableContainer>

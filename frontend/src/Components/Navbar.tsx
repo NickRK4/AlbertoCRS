@@ -118,7 +118,6 @@ export default function Navbar() {
               >Classes</MenuItem>
               <MenuItem
               onClick={() =>{
-                navigate("/register");
                 setMenuOpen(false);
               }}>Students</MenuItem>
               <MenuItem>Reports</MenuItem>
