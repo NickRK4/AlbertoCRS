@@ -11,19 +11,15 @@ const StyledHeader = styled.div`
   align-items: center;
   justify-content: space-between;
   padding: 0 30px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
   position: relative;
 `;
 
 const LeftDiv = styled.div`
-  flex: 1;
+  flex: 2;
   display: flex;
   align-items: center;
-`;
-
-const MiddleDiv = styled.div`
-  flex: 2;
-  text-align: center;
+  text-align: left;
 
   h1 {
     font-size: 22px;
@@ -32,6 +28,7 @@ const MiddleDiv = styled.div`
     color: #44296F;
   }
 `;
+
 
 const RightDiv = styled.div`
   flex: 1;
@@ -123,14 +120,12 @@ export default function Navbar() {
               onClick={() =>{
                 navigate("/register");
                 setMenuOpen(false);
-              }}>Register</MenuItem>
+              }}>Students</MenuItem>
               <MenuItem>Reports</MenuItem>
             </DropdownMenu>
           )}
+          <h1> Alberto </h1>
         </LeftDiv>
-        <MiddleDiv>
-          <h1>Course Registration System</h1>
-        </MiddleDiv>
         <RightDiv>
           <SignOutButton
             onClick={logout}
