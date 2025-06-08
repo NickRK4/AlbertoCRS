@@ -8,9 +8,9 @@ import { styled as style } from "styled-components";
 import { useState, useEffect } from 'react';
 import { PieChart } from '@mui/x-charts/PieChart';
 import { Box, Drawer, Checkbox, Card, CardContent, Typography, Button, TableContainer } from '@mui/material';
-import { Student } from "../Models/User";
-import { Course } from "../Models/Course";
-import { useAuth } from "../Context/useAuth";
+import { Student } from "../../Models/User";
+import { Course } from "../../Models/Course";
+import { useAuth } from "../../Context/useAuth";
 import RegisterClass from './RegisterClass';
 import RegisterStudent from './RegisterStudent';
 import { useNavigate } from 'react-router-dom';
@@ -320,12 +320,12 @@ export default function Dashboard() {
                         </Card>
                     </SummaryCardsContainer>
 
-                    <TableContainer sx={{ borderRadius: "10px", boxShadow: 1, minHeight: 600, maxWidth: 1200 }}>
-                        <TableTitle>Course List</TableTitle>
+                    <TableContainer sx={{ borderRadius: "10px", boxShadow: 1, maxHeight: 660, maxWidth: 1200 }}>
+                        <TableTitle style={{ marginBottom: "10px" }}>Course List</TableTitle>
                         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2, width: '100%' }}>
                             <SearchBar onChange={handleSearch} placeholder="Search..." />
                         </Box>
-                        <Box sx = {{maxHeight: 460, overflowY: "scroll"}}> 
+                        <Box sx = {{maxHeight: 450, overflowY: "scroll"}}> 
                         <Table stickyHeader>
                             <TableHead>
                                 <TableRow>

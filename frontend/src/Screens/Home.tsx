@@ -1,5 +1,5 @@
 import { useAuth } from "../Context/useAuth"
-import AdminDashboard from "../Components/AdminDashboard";
+import AdminDashboard from "../Components/Admin/AdminDashboard";
 import { useLayoutEffect } from "react";
 
 export default function Home({setShowNavBar} : {setShowNavBar: React.Dispatch<React.SetStateAction<boolean>>}) {

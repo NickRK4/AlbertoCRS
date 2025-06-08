@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
-import { Course } from '../Models/Course';
-import { useAuth } from '../Context/useAuth';
+import { Course } from '../../Models/Course';
+import { useAuth } from '../../Context/useAuth';
 
 const Overlay = styled.div`
   position: fixed;
