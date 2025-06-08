@@ -3,7 +3,6 @@ import GlobalStyle from './GlobalStyles.tsx';
 import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router';
 import Navbar from './Components/Navbar.tsx';
-import Register from './Components/Register.tsx';
 import { useState } from 'react';
 import { UserProvider } from './Context/useAuth.tsx';
 import Home from './Screens/Home.tsx';
@@ -19,7 +18,6 @@ function App() {
       <Routes>
         <Route path="/" element={<SignIn setShowNavBar={setShowNavbar}/>} />
         <Route path="/home" element={<Home setShowNavBar={setShowNavbar}/>} />
-        <Route path="/register" element={<Register setShowNavBar={setShowNavbar}/>} />
       </Routes>
       </UserProvider>
     </Router>

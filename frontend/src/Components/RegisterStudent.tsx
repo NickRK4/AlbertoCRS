@@ -1,14 +1,20 @@
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { User } from '../Models/User';
+import { useAuth } from '../Context/useAuth';
 
-const PageContainer = styled.div`
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: stretch;
-    gap: 100px;
-  `
+const Overlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
 
 const FormContainer = styled.div`
     margin: 40px 20px;
@@ -16,13 +22,14 @@ const FormContainer = styled.div`
     max-width: 400px;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    background-color: white;
 `;
 
 const Form = styled.form`
     display: flex;
     flex-direction: column;
     padding: 0px 20px;
-    margin-bottom: 20px;
+    margin-bottom: 20px;s
 `;
 
 const FormTitle = styled.h2`
@@ -70,7 +77,13 @@ const Button = styled.button`
     cursor: pointer;
 `;
 
-export default function RegisterStudent({setShowNavBar}: {setShowNavBar: React.Dispatch<React.SetStateAction<boolean>>}) { 
+
+
+export default function RegisterStudent({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
+  if (!isOpen) {  
+    return null;
+  }
+
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -78,10 +91,21 @@ export default function RegisterStudent({setShowNavBar}: {setShowNavBar: React.D
     password: '',
     user_type: ''
   } as User);
+  const { token } = useAuth();
+  const formRef = useRef<HTMLFormElement>(null);
 
-  useLayoutEffect(() => {
-    setShowNavBar(true);
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (formRef.current && !formRef.current.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    }
   }, []);
+
 
   const handleUser = (e: React.ChangeEvent<HTMLInputElement>) => {
     // extracts the name and value of the input
@@ -98,10 +122,11 @@ export default function RegisterStudent({setShowNavBar}: {setShowNavBar: React.D
     }
 
     try {
-      const response = await fetch('http://localhost:8000/api/add', {
+      const response = await fetch('http://localhost:8000/api/admin/add', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(formData)
       });
@@ -114,10 +139,11 @@ export default function RegisterStudent({setShowNavBar}: {setShowNavBar: React.D
   };
 
   return (
-    <>
-      <PageContainer>
+    <>  
+      <Overlay>
         <FormContainer>
           <Form
+            ref={formRef}
             id="register-form"
             onSubmit={createUser}>
           <FormTitle>Register User</FormTitle>
@@ -179,7 +205,7 @@ export default function RegisterStudent({setShowNavBar}: {setShowNavBar: React.D
           <Button type="submit">Create User</Button>
           </Form>
         </FormContainer>
-      </PageContainer>
+      </Overlay>
     </>
   );
 }

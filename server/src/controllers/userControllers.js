@@ -2,12 +2,6 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import db from '../config/dbPool.js';
 
-
-
-
-
-
-
 // returns all the student
 export const getAllUsers = async (req, res, next) => {
     const users = await db.query('SELECT * FROM users');
@@ -30,7 +24,6 @@ export const getUserWithID = async (req, res, next) => {
     res.status(200).json(user.rows);
 }
  
-
 // returns all the courses with the professor name
 export const getAllCourses = async (req, res, next) => {
     try{
@@ -59,14 +52,11 @@ export const createUser = async (req, res, next) => {
     try {
         // check if the user exists
         const existingUser = await db.query(`SELECT * FROM users WHERE email = '${req.body.email}';`);
-        if (user.length > 0) {
+        if (existingUser.length > 0) {
             const err = new Error('User already exists');
             err.status = 409;
             return next(err);
         }
-
-        // hash the password
-        const hashedPassword = await bcrypt.hash(user.password, 10);
         
         // create the user object
         const user = {
@@ -77,8 +67,11 @@ export const createUser = async (req, res, next) => {
             user_type: req.body.user_type
         };
 
+        // hash the password
+        const hashedPassword = await bcrypt.hash(user.password, 10);
+
         // insert the user into the database
-        const newUser = await pool.query(
+        const newUser = await db.query(
             `INSERT INTO users (first_name, last_name, email, password_hash, user_type)
             VALUES ('${user.first_name}', '${user.last_name}', '${user.email}', '${user.password}', '${user.user_type}');`
         );
@@ -117,17 +110,17 @@ export const createClass = async (req, res, next) => {
         };
         
         // need to find the id of the professor
-        const professor = await db.query(`SELECT (user_id)
+        const professor = await db.query(`SELECT user_id
                                             FROM users
                                             WHERE CONCAT(first_name, ' ', last_name) = '${req.body.professor}';`);
-        classData.professor_id = professor.rows.at(0).user_id;
-        
-        if (!classData.professor_id) {
+ 
+        if (professor.rowCount === 0) {
             const err = new Error('Professor not found');
             err.status = 404;
             return next(err);
         }
-
+        
+        classData.professor_id = professor.rows.at(0).user_id;
         const newClass = await db.query(
             `INSERT INTO classes (class_code, class_name, professor_id, size, capacity)
             VALUES ('${classData.class_code}', 

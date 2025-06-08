@@ -1,15 +1,20 @@
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { Course } from '../Models/Course';
 import { useAuth } from '../Context/useAuth';
 
-const PageContainer = styled.div`
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: stretch;
-    gap: 100px;
-  `
+const Overlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
 
 const FormContainer = styled.div`
     margin: 40px 20px;
@@ -17,6 +22,7 @@ const FormContainer = styled.div`
     max-width: 400px;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    background-color: white;
 `;
 
 const Form = styled.form`
@@ -57,7 +63,11 @@ const Button = styled.button`
     cursor: pointer;
 `;
 
-export default function RegisterClass({setShowNavBar}: {setShowNavBar: React.Dispatch<React.SetStateAction<boolean>>}) { 
+export default function RegisterClass({isOpen, onClose}: {isOpen: boolean, onClose: () => void}) {
+  if (!isOpen) {
+    return null;
+  }
+
   const [ newClass , setNewClass ] = useState({
         class_code : '',
         class_name : '',
@@ -65,13 +75,22 @@ export default function RegisterClass({setShowNavBar}: {setShowNavBar: React.Dis
         capacity : 0,
         professor : ''
     } as Course);
-    const { user, token } = useAuth();
+    const { token } = useAuth();
+    const formRef = useRef<HTMLFormElement>(null);
 
+    useEffect(() => {
+        const handleOutsideClick = (event: MouseEvent) => {
+            if (formRef.current && !formRef.current.contains(event.target as Node)) {
+                onClose();
+            }
+        };
+        document.addEventListener("mousedown", handleOutsideClick);
+        return () => {
+            document.removeEventListener("mousedown", handleOutsideClick);
+        }
+    })
 
-  useLayoutEffect(() => {
-    setShowNavBar(true);
-  }, []);
-
+    
   const handleClass = (e: React.ChangeEvent<HTMLInputElement>) => {
     // extracts the name and value of the input
     const { name, value } = e.target;
@@ -81,7 +100,7 @@ export default function RegisterClass({setShowNavBar}: {setShowNavBar: React.Dis
   const createClass = async (event: React.FormEvent) => {
         try {
             event.preventDefault();
-            const res = await fetch('http://localhost:8000/api/class', {
+            const res = await fetch('http://localhost:8000/api/admin/class', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -99,11 +118,12 @@ export default function RegisterClass({setShowNavBar}: {setShowNavBar: React.Dis
         }
     };
 
-    {user?.user_type == "professor" && 
+    return (
         <>
-        <PageContainer>
+        <Overlay>
             <FormContainer>
                 <Form
+                    ref={formRef}
                     onSubmit={createClass}>
                     <FormTitle>Class</FormTitle>
                     <p> Register a new class </p>
@@ -138,8 +158,8 @@ export default function RegisterClass({setShowNavBar}: {setShowNavBar: React.Dis
                     <Button type="submit">Create Class</Button>
                 </Form>
             </FormContainer>
-        </PageContainer>
+        </Overlay>
     </>
-    };
+    );
+    }
  
-}
