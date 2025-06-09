@@ -118,9 +118,15 @@ export default function Navbar() {
               >Classes</MenuItem>
               <MenuItem
               onClick={() =>{
+                navigate("/students");
                 setMenuOpen(false);
               }}>Students</MenuItem>
-              <MenuItem>Reports</MenuItem>
+              <MenuItem
+              onClick={() => {
+                navigate("/reports");
+                setMenuOpen(false);
+              }}
+              >Reports</MenuItem>
             </DropdownMenu>
           )}
           <h1> Alberto </h1>

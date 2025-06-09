@@ -111,7 +111,6 @@ const TagItem = style.div`
 `;
 
 const SearchBar = style.input`
-    align-self: flex-end;
     margin-top: 10px;
     margin-right: 10px;
     padding: 10px;

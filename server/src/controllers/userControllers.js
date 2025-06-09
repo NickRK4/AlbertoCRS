@@ -12,6 +12,36 @@ export const getAllUsers = async (req, res, next) => {
     res.status(200).json(users.rows);
 };
 
+// gets all students
+export const getAllStudents = async (req, res, next) => {
+    const users = await db.query('SELECT * FROM users WHERE user_type = \'student\'');
+    if (!users) {
+        const error = new Error('No users found');
+        error.status = 404;
+        return next(error);
+    }
+    res.status(200).json(users.rows);
+}
+
+// deletes students
+export const deleteUser = async (req, res, next) => {
+    const { user_ids } = req.body;
+
+    if (user_ids.length === 0) {
+        const err = new Error('No users found');
+        err.status = 404;
+        return next(err);
+    }
+
+    for (let i = 0; i < user_ids.length; i++) {
+        await db.query(`DELETE FROM users WHERE user_id = ${user_ids[i]};`);
+    }
+    
+    res.status(200).json({message: 'Users deleted'});
+}
+
+
+
 // returns studens with id = ID
 export const getUserWithID = async (req, res, next) => {
     const id = req.params.id;
