@@ -1,5 +1,5 @@
 import express from 'express';
-import { deleteUser, getAllUsers, getAllStudents, getUserWithID, createUser, getAllCourses, getStudentsByClass, createClass } from '../controllers/userControllers.js';
+import { updateUser, deleteUser, getAllUsers, getAllStudents, getUserWithID, createUser, getAllCourses, getStudentsByClass, createClass } from '../controllers/userControllers.js';
 import verifyToken from '../middleware/authMiddleware.js';
 import authorizeRoles from '../middleware/roleMiddleware.js';
 
@@ -10,6 +10,9 @@ userRouter.post('/add', verifyToken, authorizeRoles('professor'), createUser);
 
 // returns all students
 userRouter.get('/students', verifyToken, authorizeRoles('professor'), getAllStudents);
+
+// update a student
+userRouter.put('/updateStudent', verifyToken, authorizeRoles('professor'), updateUser);
 
 // create a new class
 userRouter.post('/class', verifyToken, authorizeRoles('professor'),createClass);

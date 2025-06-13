@@ -48,6 +48,7 @@ export const UserProvider = ({ children }: Props) => {
                 const payload = JSON.parse(atob(base64Payload));
                                 
                 const userData = {
+                    user_id: payload.user_id,
                     first_name: payload.firstName,
                     last_name: payload.lastName,
                     email: payload.email,

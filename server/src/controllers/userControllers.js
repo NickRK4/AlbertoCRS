@@ -40,18 +40,38 @@ export const deleteUser = async (req, res, next) => {
     res.status(200).json({message: 'Users deleted'});
 }
 
+// updates student
+export const updateUser = async (req, res, next) => {
+    try {
+        const { user_id } = req.body;
+        const { first_name, last_name, email, password } = req.body;
+        
+        if (!password){
+            await db.query(`UPDATE users SET first_name = '${first_name}', last_name = '${last_name}', email = '${email}' WHERE user_id = ${user_id};`);
+            res.status(200).json({message: 'User updated'});
+            return
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        db.query(`UPDATE users SET first_name = '${first_name}', last_name = '${last_name}', email = '${email}', password_hash = '${hashedPassword}' WHERE user_id = ${user_id};`);
+        res.status(200).json({message: 'User updated'});
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({message: 'Something went wrong'});
+    }
+}
 
 
-// returns studens with id = ID
+// returns student with id = ID
 export const getUserWithID = async (req, res, next) => {
     const id = req.params.id;
-    const user = await db.query(`SELECT * FROM users WHERE user_id = ${id}`);
+    const user = await db.query(`SELECT first_name, last_name, email FROM users WHERE user_id = ${id}`);
     if (user.length === 0) {
         const err = new Error(`User with id ${id} not found`);
         err.status = 404;
         return next(err);
     }
-    res.status(200).json(user.rows);
+    res.status(200).json(user.rows.at(0));
 }
  
 // returns all the courses with the professor name
@@ -103,10 +123,10 @@ export const createUser = async (req, res, next) => {
         // insert the user into the database
         const newUser = await db.query(
             `INSERT INTO users (first_name, last_name, email, password_hash, user_type)
-            VALUES ('${user.first_name}', '${user.last_name}', '${user.email}', '${user.password}', '${user.user_type}');`
+            VALUES ('${user.first_name}', '${user.last_name}', '${user.email}', '${hashedPassword}', '${user.user_type}');`
         );
 
-        res.status(201).json({message: 'User created',user: newUser});
+        res.status(201).json({message: 'User created', user: newUser});
     } catch (err) {
         console.log(err);
     }

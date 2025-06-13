@@ -5,6 +5,7 @@ import { User } from "../../Models/User";
 import { styled as muiStyled } from '@mui/material/styles';
 import { styled } from "styled-components";
 import RegisterStudent from "./RegisterStudent";
+import EditStudent from "./EditStudent";
 
 const PageContainer = styled.div`
     display: flex;
@@ -108,29 +109,38 @@ const DeleteModal = ({isOpen, onClose, onDelete} : {isOpen: boolean, onClose: ()
 
 
 export default function StudentsList() {
-    const { token } = useAuth();
+    const { user, token } = useAuth();
     const [ students, setStudents ] = useState([]);
     const [ search, setSearch ] = useState("");
     const [ selectedStudents, setSelectedStudents ] = useState<number[]>([]);
     const [ deleteModal, setDeleteModal ] = useState(false);
+    const [ editModal, setEditModal ] = useState(false);
     const [ registerModal, setRegisterModal ] = useState(false);
     const [ message, setMessage ] = useState("");
+    const [ loading, setLoading ] = useState(false);
 
     const getAllStudents = async () => {
-        const response = await fetch('http://localhost:8000/api/admin/students', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+        try {
+            setLoading(true);
+            const response = await fetch('http://localhost:8000/api/admin/students', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.status !== 200) {
+                throw new Error('Failed to fetch data');
             }
-        });
-        
-        if (response.status !== 200) {
-            throw new Error('Failed to fetch data');
-        }
 
         const data = await response.json();
         setStudents(data);
+        } catch (err) {
+            console.log(err);
+        } finally {
+            setLoading(false);
+        }
     }
 
     // load all the students
@@ -169,6 +179,22 @@ export default function StudentsList() {
         }
     }
 
+     if (user?.user_type !== "professor") {
+        return (
+            <>
+            <Title>404 Not Found</Title>
+            </>
+        )
+    }
+
+    if (loading) {
+        return (
+            <PageContainer>
+                <Title>Loading...</Title>
+            </PageContainer>
+        )
+    }
+
     if (students.length === 0){
         return (
             <PageContainer>
@@ -183,8 +209,9 @@ export default function StudentsList() {
         <PageContainer>
         {students.length > 0 && (
             <>
-            <RegisterStudent isOpen={registerModal} onClose={() => setRegisterModal(false)} />
-            <DeleteModal isOpen={deleteModal} onClose={() => setDeleteModal(false)} onDelete={() => handleDelete()} />
+            <RegisterStudent isOpen={registerModal} onClose={() => setRegisterModal(false)} setMessage={() => {setMessage("Student registered"); setTimeout(() => {setMessage("")}, 3000);} }/>
+            <DeleteModal isOpen={deleteModal} onClose={() => setDeleteModal(false)} onDelete={() => handleDelete()}/>
+            <EditStudent isOpen={editModal} onClose={() => setEditModal(false)} setMessage={() => {setMessage("Student updated"); setTimeout(() => {setMessage("")}, 3000);} } student={students.find((student: User) => student.user_id === selectedStudents[0]) || students[0]}/>
             <Title>Registered Students</Title>
             <TableContainer sx={{ outline: "1px solid #ccc", boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.2)", borderRadius: "10px", maxWidth: "95%" }}>
                 <Box sx = {{ marginBottom: "10px", display: "flex", justifyContent: "flex-end", width: "100%" }}>
@@ -227,14 +254,18 @@ export default function StudentsList() {
                 </Box>
                 <Box sx = {{ marginTop: "10px", marginBottom: "10px", display: "flex", justifyContent: "flex-end", width: "100%", alignItems: "center" }}>
                     {message && (
-                        <p style={{color: "green", margin: 0, marginRight: "10px", alignItems: "center"}}> {message} </p>
-                    )}      
-                    <Button style={{paddingInline: "20px", backgroundColor: "#695ACD", marginRight: "10px", color: "white", boxShadow: "0px 1px 5px rgba(0, 0, 0, 0.3)"}}
-                    onClick={() => setRegisterModal(true)}> Register </Button>
-                    {selectedStudents.length <= 1 && (<Button style={{paddingInline: "20px", backgroundColor: "#695ACD", marginRight: "10px", color: "white", boxShadow: "0px 1px 5px rgba(0, 0, 0, 0.3)"}}> Edit </Button>)}
+                        <p style={{color: "red", margin: 0, marginRight: "10px", alignItems: "center"}}> {message} </p>
+                    )}
+                    {selectedStudents.length < 1 && <Button style={{ paddingInline: "20px", backgroundColor: "#695ACD", marginRight: "10px", color: "white", boxShadow: "0px 1px 5px rgba(0, 0, 0, 0.3)"}}
+                    onClick={() => setRegisterModal(true)}> Register </Button>}
+                    {selectedStudents.length <= 1 && (<Button style={{paddingInline: "20px", backgroundColor: "#695ACD", marginRight: "10px", color: "white", boxShadow: "0px 1px 5px rgba(0, 0, 0, 0.3)"}}
+                    onClick={ () => {
+                        if (selectedStudents.length === 0) {
+                            setMessage('Please select a student to edit'); setTimeout(() =>{setMessage('');}, 3000);} else{setEditModal(true);}}
+                        }> Edit </Button>)}
                     <Button style={{paddingInline: "20px", backgroundColor: "#695ACD",marginRight: "20px", color: "white", boxShadow: "0px 1px 5px rgba(0, 0, 0, 0.3)"}}
                     onClick={
-                        () => {if (selectedStudents.length > 0) {setDeleteModal(true);}}}> Delete ({selectedStudents.length})</Button>
+                        () => {if (selectedStudents.length > 0) {setDeleteModal(true);}else{setMessage('Please select a user to delete'); setTimeout(() =>{setMessage('');}, 3000);}}}> Delete ({selectedStudents.length})</Button>
                 </Box>
             </TableContainer>
             </>

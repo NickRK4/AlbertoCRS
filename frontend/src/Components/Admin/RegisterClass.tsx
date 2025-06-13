@@ -63,11 +63,7 @@ const Button = styled.button`
     cursor: pointer;
 `;
 
-export default function RegisterClass({isOpen, onClose}: {isOpen: boolean, onClose: () => void}) {
-  if (!isOpen) {
-    return null;
-  }
-
+export default function RegisterClass({isOpen, onClose, setMessage}: {isOpen: boolean, onClose: () => void, setMessage: () => void}) {
   const [ newClass , setNewClass ] = useState({
         class_code : '',
         class_name : '',
@@ -112,11 +108,17 @@ export default function RegisterClass({isOpen, onClose}: {isOpen: boolean, onClo
             if (res.status !== 201) {
                 throw new Error('Failed to create class');
             }
-            alert("Class created successfully!");
+            onClose();
+            window.location.reload();
+            setMessage();
         } catch (err) {
             console.log(err);
         }
     };
+
+     if (!isOpen) {
+        return null;
+    }
 
     return (
         <>

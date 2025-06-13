@@ -285,8 +285,8 @@ export default function Dashboard() {
                 {list()}
             </Drawer>
 
-            <RegisterStudent isOpen={showRegisterStudent} onClose={() => setShowRegisterStudent(false)} />
-            <RegisterClass isOpen={showRegisterClass} onClose={() => setShowRegisterClass(false)} />
+            <RegisterStudent setMessage={() => {}} isOpen={showRegisterStudent} onClose={() => setShowRegisterStudent(false)} />
+            <RegisterClass setMessage={() => {}} isOpen={showRegisterClass} onClose={() => setShowRegisterClass(false)} />
 
             <Title style={{ fontSize: "42px", marginTop: "20px", marginBottom: "0" }}>Welcome back, {user?.first_name}</Title>
 

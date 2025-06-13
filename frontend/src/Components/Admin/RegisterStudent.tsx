@@ -79,11 +79,7 @@ const Button = styled.button`
 
 
 
-export default function RegisterStudent({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
-  if (!isOpen) {  
-    return null;
-  }
-
+export default function RegisterStudent({ isOpen, onClose, setMessage }: { isOpen: boolean, onClose: () => void, setMessage: () => void}) {
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -131,12 +127,18 @@ export default function RegisterStudent({ isOpen, onClose }: { isOpen: boolean, 
         body: JSON.stringify(formData)
       });
       if (response.status === 201) {
-        alert("User created successfully!");
+        onClose();
+        window.location.reload();
+        setMessage();
       }
     } catch (err) {
       console.error(err);
     }
   };
+
+  if (!isOpen) {  
+    return <></>;
+  }
 
   return (
     <>  
