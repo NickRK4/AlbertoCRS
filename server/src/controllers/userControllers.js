@@ -27,20 +27,23 @@ export const getAllStudents = async (req, res, next) => {
 export const deleteUser = async (req, res, next) => {
     const { user_ids } = req.body;
 
-    if (user_ids.length === 0) {
+    if (!Array.isArray(user_ids) || user_ids.length === 0) {
         const err = new Error('No users found');
         err.status = 404;
         return next(err);
     }
 
-    const users = [ ...user_ids ];
+    try {
+        const placeholders = user_ids.map((_, idx) => `$${idx + 1}`).join(', ');
+        const query = `DELETE FROM users WHERE user_id IN (${placeholders});`;
+        await db.query(query, user_ids);
 
-    for (let i = 0; i < user_ids.length; i++) {
-        await db.query('DELETE FROM users WHERE user_id = $1', [users[i]]);
+        res.status(200).json({ message: 'Users deleted' });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: 'Server error' });
     }
-    
-    res.status(200).json({message: 'Users deleted'});
-}
+};
 
 // updates student
 export const updateUser = async (req, res, next) => {
@@ -60,7 +63,7 @@ export const updateUser = async (req, res, next) => {
         console.log(err);
         res.status(500).json({message: 'Something went wrong'});
     }
-}
+};
 
 
 // returns student with id = ID
@@ -73,7 +76,7 @@ export const getUserWithID = async (req, res, next) => {
         return next(err);
     }
     res.status(200).json(user.rows.at(0));
-}
+};
  
 // returns all the courses with the professor name
 export const getAllCourses = async (req, res, next) => {
@@ -125,31 +128,33 @@ export const createUser = async (req, res, next) => {
     } catch (err) {
         console.log(err);
     }
-}
+};
 
 // retrieves all the classes that a given student is enrolled in
 export const getClassesByStudent = async (req, res, next) => {
     const student_id = req.params.id;
-    const class_ids = await db.query(`SELECT class_id FROM users LEFT JOIN classlist ON users.user_id = classlist.user_id
-                                    WHERE users.user_id = ${student_id};`);
-    
-                                    
-    if (!class_ids.rows.at(0).class_id) {
-        return res.status(200).json({message: "No classes found"});
-        
+    const class_ids = await db.query(
+        `SELECT class_id FROM users LEFT JOIN classlist ON users.user_id = classlist.user_id
+     WHERE users.user_id = $1;`,
+        [student_id]
+    );
+
+    const ids = class_ids.rows.map(row => row.class_id);
+    if (ids.length === 0) {
+        return res.status(200).json({ message: "No classes found" });
     }
 
-    const classes = await db.query(`SELECT classes.class_id, 
-                                    classes.class_code, 
-                                    classes.class_name, 
-                                    classes.size,
-                                    CONCAT(users.first_name, ' ', users.last_name) AS professor
-                                    FROM classes 
-                                    LEFT JOIN users ON classes.professor_id = users.user_id
-                                    WHERE classes.class_id IN (${class_ids.rows.map((class_id) => class_id.class_id).join(', ')});`);
-    
-    res.status(200).json({classes: classes.rows, message: "Success"});
-}
+    const placeholders = ids.map((_, i) => `$${i + 1}`).join(', ');
+    const classes = await db.query(
+        `SELECT classes.class_id, classes.class_code, classes.class_name, classes.size,
+            CONCAT(users.first_name, ' ', users.last_name) AS professor
+     FROM classes
+     LEFT JOIN users ON classes.professor_id = users.user_id
+     WHERE classes.class_id IN (${placeholders});`,
+        ids
+    );
+    res.status(200).json({ classes: classes.rows, message: "Success" });
+};
 
 
 
@@ -167,67 +172,72 @@ export const getStudentsByClass = async (req, res, next) => {
         return next(err);
     }
     res.status(200).json(students.rows);
-}
+};
 
 // enrolls a student into a class
 export const enrollStudent = async (req, res, next) => {
     try {
         const { student_id, class_id } = req.body;
 
-        // ensure the student isn't enrolled
-        const existingEnrollment = await db.query(`SELECT * FROM classlist WHERE user_id = ${student_id} AND class_id = ${class_id};`);
+        const existingEnrollment = await db.query(
+            `SELECT * FROM classlist WHERE user_id = $1 AND class_id = $2;`,
+            [student_id, class_id]
+        );
+
         if (existingEnrollment.rows.length > 0) {
-            return res.status(200).json({message: 'Student already enrolled'});
+            return res.status(200).json({ message: 'Student already enrolled' });
         }
 
-        // insert the student
-        const classlist = await db.query(`INSERT INTO classlist (class_id, user_id) 
-            VALUES (${class_id}, ${student_id});`);
+        await db.query(
+            `INSERT INTO classlist (class_id, user_id) VALUES ($1, $2);`,
+            [class_id, student_id]
+        );
 
-        // increment the size of the class
-        const classData = await db.query(`SELECT size FROM classes WHERE class_id = ${class_id};`);
-        const newSize = classData.rows.at(0).size + 1;
-        await db.query(`UPDATE classes SET size = ${newSize} WHERE class_id = ${class_id};`);
-        
-        // return the response message
-        res.status(201).json({message: 'Student enrolled'});
+        const classData = await db.query(
+            `SELECT size FROM classes WHERE class_id = $1;`,
+            [class_id]
+        );
+
+        const newSize = classData.rows[0].size + 1;
+        await db.query(
+            `UPDATE classes SET size = $1 WHERE class_id = $2;`,
+            [newSize, class_id]
+        );
+        res.status(201).json({ message: 'Student enrolled' });
+
     } catch (err) {
         console.log(err);
     }
-}
+};
 
 
 // creates a new class in the database
 export const createClass = async (req, res, next) => {
     try {
-        const classData = {
-            class_code: req.body.class_code,
-            class_name: req.body.class_name,
-            professor_id: null,
-            size: parseInt(req.body.size),
-            capacity: parseInt(req.body.capacity)
-        };
+        const { class_code, class_name, size, capacity, professor } = req.body;
 
-        
-        
-        // need to find the id of the professor
-        const professor = await db.query(`SELECT user_id
-                                            FROM users
-                                            WHERE CONCAT(first_name, ' ', last_name) = '${req.body.professor}';`);
- 
-        if (professor.rowCount === 0) {
+        const professorResult = await db.query(
+            `SELECT user_id FROM users WHERE CONCAT(first_name, ' ', last_name) = $1;`,
+            [professor]
+        );
+
+        if (professorResult.rowCount === 0) {
             const err = new Error('Professor not found');
             err.status = 404;
             return next(err);
-        }        
-        classData.professor_id = professor.rows.at(0).user_id;
+        }
 
-        const values = [class_code, class_name, professor_id, size, capacity];
+        const professor_id = professorResult.rows[0].user_id;
+        const values = [class_code, class_name, professor_id, parseInt(size), parseInt(capacity)];
 
         const newClass = await db.query(
-            'INSERT INTO classes(class_code, class_name, professor_id, size, capacity) VALUES ();'
+            `INSERT INTO classes(class_code, class_name, professor_id, size, capacity) 
+            VALUES ($1, $2, $3, $4, $5) RETURNING *;`,
+            values
         );
-        res.status(201).json(newClass);
+
+        res.status(201).json(newClass.rows[0]);
+
     } catch (err) {
         console.log(err);
     }
@@ -236,14 +246,23 @@ export const createClass = async (req, res, next) => {
 export const dropClass = async (req, res, next) => {
     try {
         const { student_id, class_id } = req.body;
+        const classData = await db.query(`SELECT size FROM classes WHERE class_id = $1;`, [class_id]);
 
-        const classData = await db.query(`SELECT size FROM classes WHERE class_id = ${parseInt(class_id)};`);
-        const newSize = classData.rows.at(0).size - 1;
-        await db.query(`UPDATE classes SET size = ${newSize} WHERE class_id = ${parseInt(class_id)};`);
-        
-        await db.query(`DELETE FROM classlist WHERE class_id = ${parseInt(class_id)} AND user_id = ${student_id};`);
-        res.status(200).json({message: 'Class dropped'});
+        if (classData.rowCount === 0) {
+            const err = new Error('Class not found');
+            err.status = 404;
+            return next(err);
+        }
+
+        const newSize = classData.rows[0].size - 1;
+
+        await db.query(`UPDATE classes SET size = $1 WHERE class_id = $2;`, [newSize, class_id]);
+
+        await db.query(`DELETE FROM classlist WHERE class_id = $1 AND user_id = $2;`, [class_id, student_id]);
+
+        res.status(200).json({ message: 'Class dropped' });
     } catch (err) {
         console.log(err);
+        res.status(500).json({ message: 'Server error' });
     }
-}
+};
