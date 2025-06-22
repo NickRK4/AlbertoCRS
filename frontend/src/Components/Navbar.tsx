@@ -123,12 +123,6 @@ export default function Navbar() {
                 navigate("/students");
                 setMenuOpen(false);
               }}>Students</MenuItem>
-              <MenuItem
-              onClick={() => {
-                navigate("/reports");
-                setMenuOpen(false);
-              }}
-              >Reports</MenuItem>
             </DropdownMenu>
           )}
           <h1> Alberto </h1>
