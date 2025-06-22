@@ -6,7 +6,7 @@ import authorizeRoles from '../middleware/roleMiddleware.js';
 const userRouter = express.Router();
 
 // add new student
-userRouter.post('/add', verifyToken, authorizeRoles('professor'), createUser);
+userRouter.post('/add',verifyToken, authorizeRoles('professor'), createUser);
 
 // returns all students
 userRouter.get('/students', verifyToken, authorizeRoles('professor'), getAllStudents);

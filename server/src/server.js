@@ -25,6 +25,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 // set up logger
 app.use(logger);
+app.use()
 
 // set up routers
 app.use('/api/auth', authRouter)

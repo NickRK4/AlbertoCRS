@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs';
 export const login = async (req, res, next) => {
     try {
         const { email } = req.body;
+        const values = [ email + "@nyu.edu" ];
         const user = await db.query(`SELECT user_id, first_name, last_name, email, user_type, password_hash FROM users WHERE email = '${email + "@nyu.edu"}';`);
         const data = user.rows.at(0);
 

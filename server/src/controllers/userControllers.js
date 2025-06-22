@@ -14,7 +14,7 @@ export const getAllUsers = async (req, res, next) => {
 
 // gets all students
 export const getAllStudents = async (req, res, next) => {
-    const users = await db.query('SELECT * FROM users WHERE user_type = \'student\'');
+    const users = await db.query('SELECT * FROM users WHERE user_type = $1', ['student']);
     if (!users) {
         const error = new Error('No users found');
         error.status = 404;
@@ -33,8 +33,10 @@ export const deleteUser = async (req, res, next) => {
         return next(err);
     }
 
+    const users = [ ...user_ids ];
+
     for (let i = 0; i < user_ids.length; i++) {
-        await db.query(`DELETE FROM users WHERE user_id = ${user_ids[i]};`);
+        await db.query('DELETE FROM users WHERE user_id = $1', [users[i]]);
     }
     
     res.status(200).json({message: 'Users deleted'});
@@ -43,17 +45,16 @@ export const deleteUser = async (req, res, next) => {
 // updates student
 export const updateUser = async (req, res, next) => {
     try {
-        const { user_id } = req.body;
-        const { first_name, last_name, email, password } = req.body;
+        const { user_id, first_name, last_name, email, password } = req.body;
         
         if (!password){
-            await db.query(`UPDATE users SET first_name = '${first_name}', last_name = '${last_name}', email = '${email}' WHERE user_id = ${user_id};`);
+            await db.query('UPDATE users SET first_name = $1, last_name = $2, email = $3 WHERE user_id = $4', [first_name, last_name, email, user_id]);
             res.status(200).json({message: 'User updated'});
             return
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        db.query(`UPDATE users SET first_name = '${first_name}', last_name = '${last_name}', email = '${email}', password_hash = '${hashedPassword}' WHERE user_id = ${user_id};`);
+        db.query('UPDATE users SET first_name = $1, last_name = $2, email = $3, password_hash = $4 WHERE user_id = $5', [first_name, last_name, email, hashedPassword, user_id]);
         res.status(200).json({message: 'User updated'});
     } catch (err) {
         console.log(err);
@@ -65,8 +66,8 @@ export const updateUser = async (req, res, next) => {
 // returns student with id = ID
 export const getUserWithID = async (req, res, next) => {
     const id = req.params.id;
-    const user = await db.query(`SELECT first_name, last_name, email FROM users WHERE user_id = ${id}`);
-    if (user.length === 0) {
+    const user = await db.query('SELECT first_name, last_name, email FROM users WHERE user_id = $1', [id]);
+    if (user.rows.length === 0) {
         const err = new Error(`User with id ${id} not found`);
         err.status = 404;
         return next(err);
@@ -101,32 +102,26 @@ export const getAllCourses = async (req, res, next) => {
 export const createUser = async (req, res, next) => {
     try {
         // check if the user exists
-        const existingUser = await db.query(`SELECT * FROM users WHERE email = '${req.body.email}';`);
-        if (existingUser.length > 0) {
+        const existingUser = await db.query(
+            'SELECT * FROM users WHERE email = $1;',
+            [req.body.email]
+        );
+        if (existingUser.rows.length > 0) {
             const err = new Error('User already exists');
             err.status = 409;
             return next(err);
         }
-        
-        // create the user object
-        const user = {
-            first_name: req.body.first_name,
-            last_name: req.body.last_name,
-            email: req.body.email,
-            password: req.body.password,
-            user_type: req.body.user_type
-        };
 
-        // hash the password
-        const hashedPassword = await bcrypt.hash(user.password, 10);
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        const values = [req.body.first_name, req.body.last_name, req.body.email, hashedPassword, req.body.user_type];
 
-        // insert the user into the database
         const newUser = await db.query(
             `INSERT INTO users (first_name, last_name, email, password_hash, user_type)
-            VALUES ('${user.first_name}', '${user.last_name}', '${user.email}', '${hashedPassword}', '${user.user_type}');`
+            VALUES ($1, $2, $3, $4, $5) RETURNING *;`,
+            values
         );
+        res.status(201).json({ message: 'User created', user: newUser.rows[0] });
 
-        res.status(201).json({message: 'User created', user: newUser});
     } catch (err) {
         console.log(err);
     }
@@ -212,6 +207,8 @@ export const createClass = async (req, res, next) => {
             size: parseInt(req.body.size),
             capacity: parseInt(req.body.capacity)
         };
+
+        
         
         // need to find the id of the professor
         const professor = await db.query(`SELECT user_id
@@ -222,16 +219,13 @@ export const createClass = async (req, res, next) => {
             const err = new Error('Professor not found');
             err.status = 404;
             return next(err);
-        }
-        
+        }        
         classData.professor_id = professor.rows.at(0).user_id;
+
+        const values = [class_code, class_name, professor_id, size, capacity];
+
         const newClass = await db.query(
-            `INSERT INTO classes (class_code, class_name, professor_id, size, capacity)
-            VALUES ('${classData.class_code}', 
-            '${classData.class_name}', 
-            '${classData.professor_id}', 
-            '${classData.size}', 
-            '${classData.capacity}');`
+            'INSERT INTO classes(class_code, class_name, professor_id, size, capacity) VALUES ();'
         );
         res.status(201).json(newClass);
     } catch (err) {
