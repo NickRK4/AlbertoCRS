@@ -8,7 +8,7 @@ const logger = (req, res, next) => {
         "PUT": colors.blue
     }
 
-    //console.log(method[req.method](`[${new Date().toLocaleString()}] ${req.method} ${req.url}`));
+    console.log(method[req.method](`[${new Date().toLocaleString()}] ${req.method} ${req.url}`));
     next();
 };
 

@@ -1,5 +1,5 @@
 import express from 'express';
-import { updateUser, deleteUser, getAllUsers, getAllStudents, getUserWithID, createUser, getAllCourses, getStudentsByClass, createClass } from '../controllers/userControllers.js';
+import { dropClass, enrollStudent, updateUser, deleteUser, getAllUsers, getAllStudents, getUserWithID, createUser, getAllCourses, getClassesByStudent, getStudentsByClass, createClass } from '../controllers/userControllers.js';
 import verifyToken from '../middleware/authMiddleware.js';
 import authorizeRoles from '../middleware/roleMiddleware.js';
 
@@ -21,10 +21,16 @@ userRouter.post('/class', verifyToken, authorizeRoles('professor'),createClass);
 userRouter.delete('/deleteUser', verifyToken, authorizeRoles('professor'), deleteUser);
 
 // returns all the courses
-userRouter.get('/courses', verifyToken, authorizeRoles('professor'), getAllCourses)
+userRouter.get('/courses', verifyToken, authorizeRoles('professor', 'student'), getAllCourses)
 
-// for all students
+// returns all the classes for a given student
+userRouter.get('/classesByStudent/:id', verifyToken, authorizeRoles('professor', 'student'), getClassesByStudent);
+
+// returns all students
 userRouter.get('/allStudents', verifyToken, authorizeRoles('professor'), getAllUsers);
+
+// drops a class
+userRouter.post('/drop', verifyToken, authorizeRoles('professor', 'student'), dropClass);
 
 // for specific class
 userRouter.get('/class/:id', verifyToken, authorizeRoles('professor'), getStudentsByClass);
@@ -32,5 +38,7 @@ userRouter.get('/class/:id', verifyToken, authorizeRoles('professor'), getStuden
 // for specific student
 userRouter.get('/:id', verifyToken, authorizeRoles('professor'), getUserWithID);
 
+// enroll a student
+userRouter.post('/enroll', verifyToken, authorizeRoles('professor', 'student'), enrollStudent);
 
 export default userRouter;

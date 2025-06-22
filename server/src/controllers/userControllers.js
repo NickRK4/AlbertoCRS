@@ -132,6 +132,31 @@ export const createUser = async (req, res, next) => {
     }
 }
 
+// retrieves all the classes that a given student is enrolled in
+export const getClassesByStudent = async (req, res, next) => {
+    const student_id = req.params.id;
+    const class_ids = await db.query(`SELECT class_id FROM users LEFT JOIN classlist ON users.user_id = classlist.user_id
+                                    WHERE users.user_id = ${student_id};`);
+    
+                                    
+    if (!class_ids.rows.at(0).class_id) {
+        return res.status(200).json({message: "No classes found"});
+        
+    }
+
+    const classes = await db.query(`SELECT classes.class_id, 
+                                    classes.class_code, 
+                                    classes.class_name, 
+                                    classes.size,
+                                    CONCAT(users.first_name, ' ', users.last_name) AS professor
+                                    FROM classes 
+                                    LEFT JOIN users ON classes.professor_id = users.user_id
+                                    WHERE classes.class_id IN (${class_ids.rows.map((class_id) => class_id.class_id).join(', ')});`);
+    
+    res.status(200).json({classes: classes.rows, message: "Success"});
+}
+
+
 
 // retrieves the student data by the class
 export const getStudentsByClass = async (req, res, next) => {
@@ -140,6 +165,7 @@ export const getStudentsByClass = async (req, res, next) => {
                                 FROM users INNER JOIN classlist ON users.user_id = classlist.user_id
                                 WHERE classlist.class_id = ${class_id}
                                 AND users.user_type = 'student';`);
+    
     if (students.length === 0) {
         const err = new Error('No students found');
         err.status = 404;
@@ -147,6 +173,34 @@ export const getStudentsByClass = async (req, res, next) => {
     }
     res.status(200).json(students.rows);
 }
+
+// enrolls a student into a class
+export const enrollStudent = async (req, res, next) => {
+    try {
+        const { student_id, class_id } = req.body;
+
+        // ensure the student isn't enrolled
+        const existingEnrollment = await db.query(`SELECT * FROM classlist WHERE user_id = ${student_id} AND class_id = ${class_id};`);
+        if (existingEnrollment.rows.length > 0) {
+            return res.status(200).json({message: 'Student already enrolled'});
+        }
+
+        // insert the student
+        const classlist = await db.query(`INSERT INTO classlist (class_id, user_id) 
+            VALUES (${class_id}, ${student_id});`);
+
+        // increment the size of the class
+        const classData = await db.query(`SELECT size FROM classes WHERE class_id = ${class_id};`);
+        const newSize = classData.rows.at(0).size + 1;
+        await db.query(`UPDATE classes SET size = ${newSize} WHERE class_id = ${class_id};`);
+        
+        // return the response message
+        res.status(201).json({message: 'Student enrolled'});
+    } catch (err) {
+        console.log(err);
+    }
+}
+
 
 // creates a new class in the database
 export const createClass = async (req, res, next) => {
@@ -180,6 +234,21 @@ export const createClass = async (req, res, next) => {
             '${classData.capacity}');`
         );
         res.status(201).json(newClass);
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+export const dropClass = async (req, res, next) => {
+    try {
+        const { student_id, class_id } = req.body;
+
+        const classData = await db.query(`SELECT size FROM classes WHERE class_id = ${parseInt(class_id)};`);
+        const newSize = classData.rows.at(0).size - 1;
+        await db.query(`UPDATE classes SET size = ${newSize} WHERE class_id = ${parseInt(class_id)};`);
+        
+        await db.query(`DELETE FROM classlist WHERE class_id = ${parseInt(class_id)} AND user_id = ${student_id};`);
+        res.status(200).json({message: 'Class dropped'});
     } catch (err) {
         console.log(err);
     }

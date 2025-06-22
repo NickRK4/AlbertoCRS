@@ -82,7 +82,7 @@ const Button = styled.button`
     cursor: pointer;
 `;
 
-export default function RegisterStudent({ isOpen, onClose, student, setMessage }: { isOpen: boolean, onClose: () => void, student: User, setMessage: () => void}) {
+export default function EditStudent({ isOpen, onClose, student, setMessage }: { isOpen: boolean, onClose: () => void, student: User, setMessage: () => void}) {
     const originalStudent = student;
     const [formData, setFormData] = useState({
         user_id: student.user_id,
@@ -121,6 +121,7 @@ export default function RegisterStudent({ isOpen, onClose, student, setMessage }
       return;
     }
 
+    // write the form data if any information is missing
     if (!first_name){
         formData.first_name = originalStudent.first_name;
     }

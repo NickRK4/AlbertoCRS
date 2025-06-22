@@ -29,7 +29,6 @@ const LeftDiv = styled.div`
   }
 `;
 
-
 const RightDiv = styled.div`
   flex: 1;
   display: flex;
@@ -87,6 +86,7 @@ export default function Navbar() {
   const menuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { user } = useAuth();
 
   // Close menu on outside click
   useEffect(() => {
@@ -107,7 +107,9 @@ export default function Navbar() {
     <>
       <StyledHeader>
         <LeftDiv>
+          {user?.user_type === "professor" && (
           <BurgerButton onClick={() => setMenuOpen(!menuOpen)}>☰</BurgerButton>
+          )}
           {menuOpen && (
             <DropdownMenu ref={menuRef}>
               <MenuItem

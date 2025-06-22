@@ -10,14 +10,14 @@ export const login = async (req, res, next) => {
         const data = user.rows.at(0);
 
         if (!data) {
-            const err = new Error('Incorrect username or password #1');
+            const err = new Error('User not found');
             err.status = 404;
             return next(err);
         }
 
         const verify = await bcrypt.compare(req.body.password, data.password_hash);
         if (!verify) {
-            const err = new Error('Incorrect username or password #2');
+            const err = new Error('Incorrect username or password');
             err.status = 404;
             return next(err);
         }
