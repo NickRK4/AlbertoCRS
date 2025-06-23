@@ -5,25 +5,26 @@ import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import { styled as style } from "styled-components";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { PieChart } from '@mui/x-charts/PieChart';
-import { Box, Drawer, Checkbox, Card, CardContent, Typography, Button, TableContainer } from '@mui/material';
+import { Box, Drawer, Checkbox, Card, CardContent, Typography, Button, TableContainer, Divider } from '@mui/material';
 import { Student } from "../../Models/User";
 import { Course } from "../../Models/Course";
 import { useAuth } from "../../Context/useAuth";
 import RegisterClass from './RegisterClass';
 import RegisterStudent from './RegisterStudent';
 import { useNavigate } from 'react-router-dom';
+import { Direction } from '@mui/x-charts';
+import DeleteClass from './DeleteClass';
 
 const PageContainer = style.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 0px 20px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
   background-color: #F7F7F7;
-  overflow-x: hidden;
-  overflow-y: hidden;
-  height: 93.4vh;
 `;
 
 const DrawerContainer = style.div`
@@ -32,7 +33,7 @@ const DrawerContainer = style.div`
     padding: 40px 20px;
 `;
 
-const ContentContainer = style.div`
+const Container = style.div`
     margin-top: 15px;
     display: flex;
     flex-direction: row;
@@ -41,16 +42,27 @@ const ContentContainer = style.div`
     width: 90%;
 `;
 
-const TableAndCardsContainer = style.div`
+const LeftContainer = style.div`
+    flex: 1;
     display: flex;
     flex-direction: column;
-    flex: 1;
+    justify-content: space-between;
+    align-items: center;
+`;
+
+const RightContainer = style.div`
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
 `;
 
 const SummaryCardsContainer = style.div`
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    width: 100%;
+    gap: 5px;
     margin-bottom: 20px;
 `;
 
@@ -58,26 +70,18 @@ const ActionMenuContainer = style.div`
     background-color: #FFFFFF;
     border-radius: 10px;
     padding: 16px;
-    margin-right: 110px;
-    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    width: 250px;
-    margin-top: 20px;
-`;
-
-const ChartAndActionsContainer = style.div`
     display: flex;
-    margin-top: -10px;
     flex-direction: column;
-    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 150px;
+    border: 1px solid #ccc;
 `;
 
 const Title = style.h2`
     font-size: 32px;
     font-weight: bold;
-    color: #44296F;
+    color:rgb(45, 45, 45);
     margin-bottom: 20px;
     text-align: left;
     margin-top: 10px;
@@ -86,7 +90,7 @@ const Title = style.h2`
 const TableTitle = style.h1`
     font-size: 40px;
     font-weight: bold;
-    color: #44296F;
+    color:color:rgb(45, 45, 45);
     margin-bottom: 20px;
     text-align: center;
 `;
@@ -120,16 +124,29 @@ const SearchBar = style.input`
 `;
 
 const PieChartContainer = style.div`
-    margin-top: 40px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    background-color: #FFFFFF;
+    border-radius: 10px;
+    padding: 16px;
+    padding-top: 20px;
+    padding-bottom: 70px;
+    border: 1px solid #ccc;
+    width: 100%;
 `;
+
+
+const StyledCard = styled(Card)(({ theme }) => ({
+    boxShadow: 'none',
+    border: '1px solid rgb(224, 224, 224)',
+    borderRadius: '8px',
+}))
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
     maxWidth: '100px',
     [`&.${tableCellClasses.head}`]: {
-        backgroundColor: '#44296F',
+        backgroundColor: '#695ACD',
         fontWeight: 'bold',
         color: theme.palette.common.white,
         fontSize: 14
@@ -140,15 +157,28 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 }));
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
+    '&:nth-of-type(odd)': {
+        backgroundColor: theme.palette.action.hover,
+    },
+
     borderRadius: '8px',
+
     '&:last-child td, &:last-child th': {
         border: 0,
     },
     '&:hover': {
         cursor: 'pointer',
-        backgroundColor: theme.palette.action.hover,
+        backgroundColor: "#EFE6FA",
     },
 }));
+
+const actionButtonStyle = {
+  backgroundColor: "#695ACD",
+  padding: '12px 20px',
+  flex: 1
+};
+
+const cardStyles = { minWidth: 150, display: "flex", flexDirection: "column", alignItems: "center" }
 
 export default function Dashboard() {
     const [loading, setLoading] = useState(false);
@@ -161,6 +191,7 @@ export default function Dashboard() {
     const { user, token } = useAuth();
     const [showRegisterStudent, setShowRegisterStudent] = useState(false);
     const [showRegisterClass, setShowRegisterClass] = useState(false);
+    const [showDeleteClass, setShowDeleteClass] = useState(false);
     const navigate = useNavigate();
 
     const getClassData = async (id: number) => {
@@ -204,13 +235,17 @@ export default function Dashboard() {
         }
     };
 
-    const filteredClasses = classes.filter((course) =>
-        search === "" || course.class_name.toLowerCase().includes(search.toLowerCase())
-    );
+    const filteredClasses = useMemo(() => {
+        return classes.filter(course => 
+            course.class_name.toLowerCase().includes(search.toLowerCase()) ||
+            course.class_id.toString().includes(search)
+        );
+    }, [classes, search]);
 
     const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(event.target.value);
-    };
+    }
+
 
     const handleDrawerClose = () => {
         if (document.activeElement instanceof HTMLElement) {
@@ -233,6 +268,34 @@ export default function Dashboard() {
         }
     };
 
+    const handleReport = async () => {
+        try {
+            if (selectedClasses.length === 0) {
+                return;
+            }
+
+            const res = await fetch(`http://localhost:8000/api/admin/class/report/${selectedClasses[0]}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }, body: JSON.stringify(selectedClasses)
+            })
+
+            if (res.status === 200) {
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'report.txt';
+                link.click();
+                window.URL.revokeObjectURL(url);
+            }
+        } catch (err){
+            console.log(err);
+        }
+    }
+
     const list = () => (
         <Box sx={{ width: "40vw", minWidth: 500 }} role="presentation">
             <DrawerContainer>
@@ -248,7 +311,7 @@ export default function Dashboard() {
                         <Title>Student List</Title>
                         {students.length === 0 && <p>No students found for this class</p>}
                         {students.length > 0 && (
-                            <TableContainer sx={{ borderRadius: "8px", maxHeight: "50vh", overflowY: "scroll" }}>
+                            <TableContainer sx={{ height: "50vh", borderRadius: "8px", maxHeight: "50vh", overflowY: "scroll" }}>
                                 <Table>
                                     <TableHead>
                                         <StyledTableRow>
@@ -287,39 +350,44 @@ export default function Dashboard() {
 
             <RegisterStudent setMessage={() => {}} isOpen={showRegisterStudent} onClose={() => setShowRegisterStudent(false)} />
             <RegisterClass setMessage={() => {}} isOpen={showRegisterClass} onClose={() => setShowRegisterClass(false)} />
+            <DeleteClass setMessage={() => {}} isOpen={showDeleteClass} onClose={() => setShowDeleteClass(false)} courses={classes} />
 
             <Title style={{ fontSize: "42px", marginTop: "20px", marginBottom: "0" }}>Welcome back, {user?.first_name}</Title>
-
-            <ContentContainer>
-                <TableAndCardsContainer>
+            <Container>
+                <LeftContainer>
                     <SummaryCardsContainer>
-                        <Card sx={{ minWidth: 150, display: "flex", flexDirection: "column", alignItems: "center" }}>
+                        <StyledCard sx={cardStyles}>
                             <CardContent>
-                                <Typography variant="h3" color="#43296E" fontSize="32px">0</Typography>
-                                <Typography fontWeight="bold" color="#43296E" fontSize="16px">Classes</Typography>
+                                <Typography variant="h3" color="#color:rgb(45, 45, 45);" fontSize="32px">0</Typography>
+                                <Typography fontWeight="bold" color="#color:rgb(45, 45, 45);" fontSize="16px">Classes</Typography>
                             </CardContent>
-                        </Card>
-                        <Card sx={{ minWidth: 150, display: "flex", flexDirection: "column", alignItems: "center" }}>
+                        </StyledCard>
+                        <StyledCard sx={cardStyles}>
                             <CardContent>
-                                <Typography variant="h3" color="#43296E" fontSize="32px">0</Typography>
-                                <Typography fontWeight="bold" color="#43296E" fontSize="16px">Students</Typography>
+                                <Typography variant="h3" color="#color:rgb(45, 45, 45);" fontSize="32px">0</Typography>
+                                <Typography fontWeight="bold" color="#color:rgb(45, 45, 45);" fontSize="16px">Students</Typography>
                             </CardContent>
-                        </Card>
-                        <Card sx={{ minWidth: 150, display: "flex", flexDirection: "column", alignItems: "center" }}>
+                        </StyledCard>
+                        <StyledCard sx={cardStyles}>
                             <CardContent>
-                                <Typography variant="h3" color="#43296E" fontSize="32px">0</Typography>
-                                <Typography fontWeight="bold" color="#43296E" fontSize="16px">Professors</Typography>
+                                <Typography variant="h3" color="#color:rgb(45, 45, 45);" fontSize="32px">0</Typography>
+                                <Typography fontWeight="bold" color="#color:rgb(45, 45, 45);" fontSize="16px">Professors</Typography>
                             </CardContent>
-                        </Card>
-                        <Card sx={{ minWidth: 150, display: "flex", flexDirection: "column", alignItems: "center" }}>
+                        </StyledCard>
+                        <StyledCard sx={cardStyles}>
                             <CardContent>
-                                <Typography variant="h3" color="#43296E" fontSize="32px">0</Typography>
-                                <Typography fontWeight="bold" color="#43296E" fontSize="16px">Empty Classes</Typography>
+                                <Typography variant="h3" color="#color:rgb(45, 45, 45);" fontSize="32px">0</Typography>
+                                <Typography fontWeight="bold" color="#color:rgb(45, 45, 45);" fontSize="16px">Empty Classes</Typography>
                             </CardContent>
-                        </Card>
+                        </StyledCard>
                     </SummaryCardsContainer>
-
-                    <TableContainer sx={{ borderRadius: "10px", boxShadow: 1, maxHeight: 660, maxWidth: 1200 }}>
+                    <TableContainer 
+                    component = {Box}
+                    sx={{ backgroundColor: "#FFFFFF", 
+                        borderRadius: "10px", 
+                        border: "1px solid #ccc", 
+                        width: "100%", 
+                        minHeight: 660 }}>
                         <TableTitle style={{ marginBottom: "10px" }}>Course List</TableTitle>
                         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2, width: '100%' }}>
                             <SearchBar onChange={handleSearch} placeholder="Search..." />
@@ -366,23 +434,26 @@ export default function Dashboard() {
                         {filteredClasses.length > 0 && (
                             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2, width: '100%' }}>
                                 {selectedClasses.length === 0 && <Button sx={{ marginRight: 1, marginTop: 1, backgroundColor: '#695ACD' }} variant="contained">View Full</Button>}
-                                <Button sx={{ marginRight: 1, marginTop: 1, backgroundColor: '#695ACD' }} variant="contained">Generate Report ({selectedClasses.length})</Button>
+                                {selectedClasses.length <= 1 && <Button sx={{ marginRight: 1, marginTop: 1, backgroundColor: '#695ACD' }} variant="contained"onClick={() => handleReport()}>Generate Report (.txt)</Button>}
                             </Box>
                         )}
                     </TableContainer>
-                </TableAndCardsContainer>
-                <ChartAndActionsContainer>
-                    <Title style={{ marginRight: "110px", marginBottom: "0", marginTop: "0" }}>Actions</Title>
+                </LeftContainer>
+                <RightContainer>
                     <ActionMenuContainer>
-                        <Button style={{ backgroundColor: "#695ACD" }} variant="contained" onClick={() => setShowRegisterClass(true)}>Create Class</Button>
-                        <Button style={{ backgroundColor: "#695ACD" }} variant="contained" onClick={() => setShowRegisterStudent(true)}>Register User</Button>
-                        <Button style={{ backgroundColor: "#695ACD" }} variant="contained" onClick={() => navigate("/students")}>View Students</Button>
-                        <Button style={{ backgroundColor: "#695ACD" }} variant="contained" onClick={() => navigate("/reports")}>View Reports</Button>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', gap: '8px' }}>
+                            <Button style={actionButtonStyle} variant="contained" onClick={() => setShowRegisterClass(true)}>Create Class</Button>
+                            <Button style={actionButtonStyle} variant="contained" onClick={() => setShowDeleteClass(true)}>Delete Class</Button>
+                        </Box>
+                        <Divider/>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', gap: '8px' }}>
+                            <Button style={actionButtonStyle} variant="contained" onClick={() => setShowRegisterStudent(true)}>Register User</Button>
+                            <Button style={actionButtonStyle} variant="contained" onClick={() => navigate("/students")}>View Students</Button>
+                            
+                        </Box>
                     </ActionMenuContainer>
                     <PieChartContainer>
-                        <Typography fontSize='32px' fontWeight='bold' color='#43296E' marginTop={3.8} marginRight={13} marginBottom={5} variant="h4">
-                            Class Distribution
-                        </Typography>
+                        <Title> Class Distribution </Title>
                         <PieChart
                             height={350}
                             width={350}
@@ -393,13 +464,19 @@ export default function Dashboard() {
                                         { id: 1, value: 10, label: 'Humanities', color: '#808080' },
                                         { id: 2, value: 15, label: 'Other', color: '#695ACD' },
                                     ],
-                                    innerRadius: 80
+                                    innerRadius: 80,
                                 },
                             ]}
+                            slotProps={{
+                                legend: {
+                                    direction: "row" as Direction,
+                                    position: { vertical: 'top'}
+                                }
+                            }}
                         />
                     </PieChartContainer>
-                </ChartAndActionsContainer>
-            </ContentContainer>
+                </RightContainer>
+            </Container>
         </PageContainer>
     );
 }

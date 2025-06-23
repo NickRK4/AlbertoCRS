@@ -6,8 +6,8 @@ import { useAuth } from "../Context/useAuth";
 const StyledHeader = styled.div`
   display: flex;
   height: 60px;
-  background-color: #f0f0f0;
-  color: #44296F;
+  background-color: ;
+  color:rgb(45, 45, 45);
   align-items: center;
   justify-content: space-between;
   padding: 0 30px;
@@ -25,7 +25,7 @@ const LeftDiv = styled.div`
     font-size: 22px;
     margin: 0;
     font-weight: bold;
-    color: #44296F;
+    color:rgb(45, 45, 45);
   }
 `;
 
@@ -40,7 +40,7 @@ const BurgerButton = styled.button`
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: #44296F;
+  color:rgb(45, 45, 45);
 `;
 
 const DropdownMenu = styled.div`
@@ -67,7 +67,7 @@ const MenuItem = styled.div`
 `;
 
 const SignOutButton = styled.button`
-  background-color: #44296F;
+  background-color:rgb(45, 45, 45);
   color: white;
   border: none;
   padding: 8px 16px;
@@ -80,6 +80,7 @@ const SignOutButton = styled.button`
     background-color: #351f52;
   }
 `;
+
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -119,10 +120,15 @@ export default function Navbar() {
               }}
               >Classes</MenuItem>
               <MenuItem
-              onClick={() =>{
+              onClick={() => {
                 navigate("/students");
                 setMenuOpen(false);
               }}>Students</MenuItem>
+              <MenuItem
+              onClick={() => {
+                window.open('https://github.com/NickRK4', '_blank');
+              }}
+              >Docs</MenuItem> 
             </DropdownMenu>
           )}
           <h1> Alberto </h1>

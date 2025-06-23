@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import db from '../config/dbPool.js';
+import fs from 'fs';
 
 // returns all the student
 export const getAllUsers = async (req, res, next) => {
@@ -243,6 +244,24 @@ export const createClass = async (req, res, next) => {
     }
 }
 
+export const deleteClass = async (req, res, next) => {
+    try {
+        const class_id  = parseInt(req.params.id);
+        const classData = await db.query(`SELECT size FROM classes WHERE class_id = $1;`, [class_id]);
+        if (classData.rows[0].size > 0) {
+            const err = new Error('Class is not empty!');
+            err.status = 404;
+            return next(err);
+        }
+
+        await db.query(`DELETE FROM classes WHERE class_id = $1;`, [class_id]);
+        res.status(200).json({ message: 'Class deleted' });
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+
 export const dropClass = async (req, res, next) => {
     try {
         const { student_id, class_id } = req.body;
@@ -266,3 +285,45 @@ export const dropClass = async (req, res, next) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+// GET METHOD THAT GENERATES A REPORT AND SENDS IT BACK AS A TXT FILE
+export const generateReport = async (req, res, next) => {
+    try{
+        const class_id = req.params.code;
+
+        const classData = await db.query(`SELECT * FROM classes WHERE class_id = $1;`, [class_id]);
+        if (classData.rowCount === 0) {
+            const err = new Error('Class not found');
+            err.status = 404;
+            return next(err);
+        }
+        
+        const class_name = classData.rows[0].class_name;
+        const class_code = classData.rows[0].class_code;
+        const professor = classData.rows[0].professor_id;
+        const size = classData.rows[0].size;
+        const capacity = classData.rows[0].capacity;
+        const students = await db.query(`SELECT first_name, last_name, email 
+                                FROM users INNER JOIN classlist ON users.user_id = classlist.user_id
+                                WHERE classlist.class_id = $1
+                                AND users.user_type = 'student';`, [class_id]);
+        
+        const studentList = (students.rowCount === 0) ? 'No students found' : students.rows.map((student) => `${student.first_name} ${student.last_name} - ${student.email}`).join('\n');
+
+        const report = 
+        `Class Name: ${class_name}
+Class Code: ${class_code}
+Professor: ${professor}
+Size: ${size}
+Capacity: ${capacity}
+Students:
+${studentList}`
+        
+        res.setHeader('Content-Type', 'text/plain');
+        res.setHeader('Content-Disposition', 'attachment; filename="report.txt"');
+        res.status(200).send(report);
+    } catch (err) {
+        console.log(err);
+    }
+
+}

@@ -3,15 +3,22 @@ import React, { useLayoutEffect, useState } from "react";
 import { useAuth } from "../Context/useAuth";
 import { loginAPI } from "../Services/AuthServices";
 
+const Cont = styled.div`
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+`
+
+
 const Container = styled.div`
-    color: white;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
-    position: absolute;
-    height: 100vh;
-`;
+
+`
 
 const StyledButton = styled.button`
     background-color:#530686;
@@ -90,6 +97,7 @@ const AlertContainer = styled.div`
 `;
 
 
+
 const SignIn = ( {setShowNavBar} : {setShowNavBar: React.Dispatch<React.SetStateAction<boolean>>} ) => {
     const [ username, setUsername ] = useState("");
     const [ password, setPassword ] = useState("");
@@ -106,7 +114,7 @@ const SignIn = ( {setShowNavBar} : {setShowNavBar: React.Dispatch<React.SetState
           return null;
         }
         return (
-            <p>{error}</p>
+            <p style={{color: "red"}}>{error}</p>
         );
       }
 
@@ -146,17 +154,18 @@ const SignIn = ( {setShowNavBar} : {setShowNavBar: React.Dispatch<React.SetState
     }
     return (
         <>
+        <Cont>
         <Container>
             <LeftContainer>
-                <h1>Welcome Back!</h1>
-                <p>Sign in to your account to access 
+                <h1 style={{color: "white"}}>Welcome Back!</h1>
+                <p style={{color: "white"}}>Sign in to your account to access 
                     course information. Docs for this project can be found
                     <a href="#"> here</a>.
                 </p>
             </LeftContainer>
             <RightContainer>
             <FormContainer>
-                <h1>Sign In</h1>
+                <h1 style={{color: "white"}}>Sign In</h1>
                 <AlertContainer>
                     <UserNotFound/>
                 </AlertContainer>
@@ -170,7 +179,7 @@ const SignIn = ( {setShowNavBar} : {setShowNavBar: React.Dispatch<React.SetState
             <BackgroundImage src="/WallpaperNYU.jpg" alt="Image" />
             <BG/>
         </Container>
-
+        </Cont>
         </>
     )
 }

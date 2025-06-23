@@ -9,11 +9,10 @@ import AddIcon from '@mui/icons-material/Add';
 import RegisterClass from "./RegisterClass";
 import DropModal from "./DropModal";
 
-
 const Container = styled.div`
     display: flex;
     justify-content: space-between;
-
+    height: 93.5vh;
 `;
 
 const LeftContainer = styled.div`
@@ -44,6 +43,7 @@ export default function StudentDashboard(){
     const [ showClasses, setShowClasses ] = useState(false);
     const [ showDrop, setShowDrop ] = useState(false);
     const [ message, setMessage ] = useState("");
+
     
     const fetchClasses = async () => {
         try {
@@ -78,7 +78,7 @@ export default function StudentDashboard(){
         color: theme.palette.text.primary,
         maxWidth: '100px',
         [`&.${tableCellClasses.head}`]: {
-            backgroundColor: '#44296F',
+            backgroundColor: '#695ACD',
             fontWeight: 'bold',
             color: theme.palette.common.white,
             fontSize: 14
@@ -101,7 +101,7 @@ export default function StudentDashboard(){
 
     return (
         <>
-        <h1> Welcome back, {user?.first_name} </h1>
+        <h1 style= {{color: "#2B2B2B"}}> Welcome back, {user?.first_name} </h1>
         <Container>
         <RegisterClass isOpen={showClasses} onClose={() => setShowClasses(false)} message={(msg: string) => {setMessage(msg); setTimeout(() => {setMessage("")}, 2000);}}/>
         <DropModal isOpen={showDrop} onClose={() => setShowDrop(false)} courses={classes} message={(msg: string) => {setMessage(msg); setTimeout(() => {setMessage("")}, 2000);}}/>
@@ -119,7 +119,7 @@ export default function StudentDashboard(){
         <RightContainer>
             {classes.length > 0 && 
                 <TableAndButton>
-                <TableContainer sx={{ borderRadius: "8px", width: "100%" }}>
+                <TableContainer sx={{ backgroundColor: "white", borderRadius: "8px", width: "100%" }}>
                     <Table stickyHeader>
                         <TableHead>
                             <StyledTableRow>
@@ -141,7 +141,7 @@ export default function StudentDashboard(){
                         </TableBody>
                     </Table>
                 </TableContainer>
-                <Box sx={{display: "flex", alignItems: "center", justifyContent: "flex-end", width: "100%"}}>
+                <Box sx={{marginTop: "10px", display: "flex", alignItems: "center", justifyContent: "flex-end", width: "100%"}}>
                     <p style={{marginRight: "15px"}}>{message}</p>
                     <Button sx={{maxHeight: "40px", color: "white", marginRight: "15px", backgroundColor: "#695ACD"}}
                         onClick={() => setShowDrop(true)}>Drop</Button>

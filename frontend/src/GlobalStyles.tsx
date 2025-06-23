@@ -11,6 +11,10 @@ const GlobalStyle = createGlobalStyle`
     align-items: center;
   }
 
+  h1, p {
+    color: #2B2B2B
+  }
+
   #root {
     height: 100vh;
     width: 100vw;

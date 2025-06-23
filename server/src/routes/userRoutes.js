@@ -1,5 +1,5 @@
 import express from 'express';
-import { dropClass, enrollStudent, updateUser, deleteUser, getAllUsers, getAllStudents, getUserWithID, createUser, getAllCourses, getClassesByStudent, getStudentsByClass, createClass } from '../controllers/userControllers.js';
+import {deleteClass, generateReport, dropClass, enrollStudent, updateUser, deleteUser, getAllUsers, getAllStudents, getUserWithID, createUser, getAllCourses, getClassesByStudent, getStudentsByClass, createClass } from '../controllers/userControllers.js';
 import verifyToken from '../middleware/authMiddleware.js';
 import authorizeRoles from '../middleware/roleMiddleware.js';
 
@@ -16,6 +16,9 @@ userRouter.put('/updateStudent', verifyToken, authorizeRoles('professor'), updat
 
 // create a new class
 userRouter.post('/class', verifyToken, authorizeRoles('professor'),createClass);
+
+// delete a class
+userRouter.delete('/deleteClass/:id', verifyToken, authorizeRoles('professor'), deleteClass);
 
 // delete a user(s)
 userRouter.delete('/deleteUser', verifyToken, authorizeRoles('professor'), deleteUser);
@@ -40,5 +43,9 @@ userRouter.get('/:id', verifyToken, authorizeRoles('professor'), getUserWithID);
 
 // enroll a student
 userRouter.post('/enroll', verifyToken, authorizeRoles('professor', 'student'), enrollStudent);
+
+// generates the report and sends it back
+userRouter.post('/class/report/:code', verifyToken, authorizeRoles('professor'), generateReport);
+
 
 export default userRouter;

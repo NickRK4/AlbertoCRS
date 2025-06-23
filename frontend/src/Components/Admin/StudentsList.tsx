@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../Context/useAuth";
 import { Box, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, tableCellClasses, Button, Checkbox } from "@mui/material";
 import { User } from "../../Models/User";
@@ -13,9 +13,9 @@ const PageContainer = styled.div`
     align-items: center;
     padding: 0px 20px;
     background-color: #F7F7F7;
-    overflow-x: hidden;
     overflow-y: hidden;
-    height: 93.4vh;`
+    height: calc(100vh - 60px);
+    overflow-y: auto;`
 
 const SearchBar = styled.input`
     margin-right: 10px;
@@ -27,10 +27,10 @@ const SearchBar = styled.input`
 `;
 
 const Title = styled.h2`
-    font-size: 30px;
+    font-size: 42px;
     font-weight: bold;
     margin-bottom: 10px;
-    color: #44296F;
+    color: #2D2D2D;
 `;
 
 const Overlay = styled.div`
@@ -49,7 +49,7 @@ const Overlay = styled.div`
 const StyledTableCell = muiStyled(TableCell)(({ theme }) => ({
     maxWidth: '100px',
     [`&.${tableCellClasses.head}`]: {
-        backgroundColor: '#44296F',
+        backgroundColor: '#6758C8',
         fontWeight: 'bold',
         color: theme.palette.common.white,
         fontSize: 17
@@ -61,12 +61,17 @@ const StyledTableCell = muiStyled(TableCell)(({ theme }) => ({
 
 const StyledTableRow = muiStyled(TableRow)(({ theme }) => ({
     borderRadius: '8px',
+
+    '&:nth-of-type(odd)': {
+        backgroundColor: theme.palette.action.hover,
+    },
+
     '&:last-child td, &:last-child th': {
         border: 0,
     },
     '&:hover': {
         cursor: 'pointer',
-        backgroundColor: theme.palette.action.hover,
+        backgroundColor: '#EFE6FA',
     },
 }));
 
@@ -152,7 +157,14 @@ export default function StudentsList() {
         setSearch(e.target.value);
     }
 
-    const filteredStudents = students.filter((student: User ) => 
+    const filteredStudents = useMemo(() => {
+        return students.filter((student: User ) => 
+            student.first_name.toLowerCase().includes(search.toLowerCase())
+            || student.last_name.toLowerCase().includes(search.toLowerCase())
+        );
+    }, [search, students]);
+    
+    students.filter((student: User ) => 
         student.first_name.toLowerCase().includes(search.toLowerCase())
         || student.last_name.toLowerCase().includes(search.toLowerCase())
     );
@@ -212,8 +224,8 @@ export default function StudentsList() {
             <RegisterStudent isOpen={registerModal} onClose={() => setRegisterModal(false)} setMessage={() => {setMessage("Student registered"); setTimeout(() => {setMessage("")}, 3000);} }/>
             <DeleteModal isOpen={deleteModal} onClose={() => setDeleteModal(false)} onDelete={() => handleDelete()}/>
             <EditStudent isOpen={editModal} onClose={() => setEditModal(false)} setMessage={() => {setMessage("Student updated"); setTimeout(() => {setMessage("")}, 3000);} } student={students.find((student: User) => student.user_id === selectedStudents[0]) || students[0]}/>
-            <Title>Registered Students</Title>
-            <TableContainer sx={{ outline: "1px solid #ccc", boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.2)", borderRadius: "10px", maxWidth: "95%" }}>
+            <Title> Students ({filteredStudents.length}) </Title>
+            <TableContainer sx={{ outline: "1px solid #ccc", borderRadius: "10px", maxWidth: "95%", backgroundColor: "#FFFFFF" }}>
                 <Box sx = {{ marginBottom: "10px", display: "flex", justifyContent: "flex-end", width: "100%" }}>
                     <SearchBar onChange={handleChange}type="text" placeholder="Search User"></SearchBar>
                 </Box>
