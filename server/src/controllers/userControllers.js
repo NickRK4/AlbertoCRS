@@ -5,43 +5,50 @@ import fs from 'fs';
 
 // returns all the student
 export const getAllUsers = async (req, res, next) => {
-    const users = await db.query('SELECT * FROM users');
-    if (!users) {
-        const error = new Error('No users found');
-        return next(error);
+    try {
+        const users = await db.query('SELECT * FROM users');
+        if (!users) {
+            const error = new Error('No users found');
+            return next(error);
+        }
+        res.status(200).json(users.rows);
+    } catch (err) {
+        next(err);
     }
-    res.status(200).json(users.rows);
 };
 
 // gets all students
 export const getAllStudents = async (req, res, next) => {
-    const users = await db.query('SELECT * FROM users WHERE user_type = $1', ['student']);
-    if (!users) {
-        const error = new Error('No users found');
-        error.status = 404;
-        return next(error);
+    try {
+        const users = await db.query('SELECT * FROM users WHERE user_type = $1', ['student']);
+        if (!users) {
+            const error = new Error('No users found');
+            error.status = 404;
+            return next(error);
+        }
+        res.status(200).json(users.rows);
+    } catch (err) {
+        next(err);
     }
-    res.status(200).json(users.rows);
 }
 
 // deletes students
 export const deleteUser = async (req, res, next) => {
-    const { user_ids } = req.body;
-
-    if (!Array.isArray(user_ids) || user_ids.length === 0) {
-        const err = new Error('No users found');
-        err.status = 404;
-        return next(err);
-    }
-
     try {
+        const { user_ids } = req.body;
+        if (!Array.isArray(user_ids) || user_ids.length === 0) {
+            const err = new Error('No users found');
+            err.status = 404;
+            return next(err);
+        }
+
         const placeholders = user_ids.map((_, idx) => `$${idx + 1}`).join(', ');
         const query = `DELETE FROM users WHERE user_id IN (${placeholders});`;
-        await db.query(query, user_ids);
+        const result = await db.query(query, user_ids);
 
         res.status(200).json({ message: 'Users deleted' });
     } catch (err) {
-        console.log(err);
+        next(err);
         res.status(500).json({ message: 'Server error' });
     }
 };
@@ -54,14 +61,14 @@ export const updateUser = async (req, res, next) => {
         if (!password){
             await db.query('UPDATE users SET first_name = $1, last_name = $2, email = $3 WHERE user_id = $4', [first_name, last_name, email, user_id]);
             res.status(200).json({message: 'User updated'});
-            return
+            return next(err);
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
         db.query('UPDATE users SET first_name = $1, last_name = $2, email = $3, password_hash = $4 WHERE user_id = $5', [first_name, last_name, email, hashedPassword, user_id]);
         res.status(200).json({message: 'User updated'});
     } catch (err) {
-        console.log(err);
+        next(err);
         res.status(500).json({message: 'Something went wrong'});
     }
 };
@@ -69,14 +76,19 @@ export const updateUser = async (req, res, next) => {
 
 // returns student with id = ID
 export const getUserWithID = async (req, res, next) => {
-    const id = req.params.id;
-    const user = await db.query('SELECT first_name, last_name, email FROM users WHERE user_id = $1', [id]);
-    if (user.rows.length === 0) {
-        const err = new Error(`User with id ${id} not found`);
-        err.status = 404;
-        return next(err);
+    try {
+        const id = req.params.id;
+        const user = await db.query('SELECT first_name, last_name, email FROM users WHERE user_id = $1', [id]);
+        if (user.rows.length === 0) {
+            const err = new Error(`User with id ${id} not found`);
+            err.status = 404;
+            return next(err);
+        }
+        res.status(200).json(user.rows.at(0));
+    } catch (err) {
+        next(err);
+        res.status(500).json({message: 'Something went wrong'});
     }
-    res.status(200).json(user.rows.at(0));
 };
  
 // returns all the courses with the professor name
@@ -97,7 +109,8 @@ export const getAllCourses = async (req, res, next) => {
         }
         res.status(200).json(courses.rows);
     } catch (err) {
-        console.log(err);
+        next(err);
+        res.status(500).json({message: 'Something went wrong'});
     }
 }
 
@@ -127,52 +140,63 @@ export const createUser = async (req, res, next) => {
         res.status(201).json({ message: 'User created', user: newUser.rows[0] });
 
     } catch (err) {
-        console.log(err);
+        next(err);
+        res.status(500).json({message: 'Something went wrong'});
     }
 };
 
 // retrieves all the classes that a given student is enrolled in
 export const getClassesByStudent = async (req, res, next) => {
-    const student_id = req.params.id;
-    const class_ids = await db.query(
-        `SELECT class_id FROM users LEFT JOIN classlist ON users.user_id = classlist.user_id
-     WHERE users.user_id = $1;`,
-        [student_id]
-    );
+    try {
+        const student_id = req.params.id;
+        const class_ids = await db.query(
+            `SELECT class_id FROM users LEFT JOIN classlist ON users.user_id = classlist.user_id
+        WHERE users.user_id = $1;`,
+            [student_id]
+        );
 
-    const ids = class_ids.rows.map(row => row.class_id);
-    if (ids.length === 0) {
-        return res.status(200).json({ message: "No classes found" });
+        const ids = class_ids.rows.map(row => row.class_id);
+        if (ids.length === 0) {
+            return res.status(200).json({ message: "No classes found" });
+        }
+
+        const placeholders = ids.map((_, i) => `$${i + 1}`).join(', ');
+        const classes = await db.query(
+            `SELECT classes.class_id, classes.class_code, classes.class_name, classes.size,
+                CONCAT(users.first_name, ' ', users.last_name) AS professor
+        FROM classes
+        LEFT JOIN users ON classes.professor_id = users.user_id
+        WHERE classes.class_id IN (${placeholders});`,
+            ids
+        );
+        res.status(200).json({ classes: classes.rows, message: "Success" });
+    } catch (err) {
+        next(err);
+        res.status(500).json({message: 'Something went wrong'});
     }
-
-    const placeholders = ids.map((_, i) => `$${i + 1}`).join(', ');
-    const classes = await db.query(
-        `SELECT classes.class_id, classes.class_code, classes.class_name, classes.size,
-            CONCAT(users.first_name, ' ', users.last_name) AS professor
-     FROM classes
-     LEFT JOIN users ON classes.professor_id = users.user_id
-     WHERE classes.class_id IN (${placeholders});`,
-        ids
-    );
-    res.status(200).json({ classes: classes.rows, message: "Success" });
 };
 
 
 
 // retrieves the student data by the class
 export const getStudentsByClass = async (req, res, next) => {
-    const class_id = req.params.id;
-    const students = await db.query(`SELECT first_name, last_name, email 
-                                FROM users INNER JOIN classlist ON users.user_id = classlist.user_id
-                                WHERE classlist.class_id = ${class_id}
-                                AND users.user_type = 'student';`);
-    
-    if (students.length === 0) {
-        const err = new Error('No students found');
-        err.status = 404;
-        return next(err);
+    try {
+        const class_id = req.params.id;
+        const students = await db.query(`SELECT first_name, last_name, email 
+                                    FROM users INNER JOIN classlist ON users.user_id = classlist.user_id
+                                    WHERE classlist.class_id = ${class_id}
+                                    AND users.user_type = 'student';`);
+        
+        if (students.length === 0) {
+            const err = new Error('No students found');
+            err.status = 404;
+            return next(err);
+        }
+        res.status(200).json(students.rows);
+    } catch (err) {
+        next(err);
+        res.status(500).json({message: 'Something went wrong'});
     }
-    res.status(200).json(students.rows);
 };
 
 // enrolls a student into a class
@@ -207,7 +231,8 @@ export const enrollStudent = async (req, res, next) => {
         res.status(201).json({ message: 'Student enrolled' });
 
     } catch (err) {
-        console.log(err);
+        next(err);
+        res.status(500).json({message: 'Something went wrong'});
     }
 };
 
@@ -240,7 +265,8 @@ export const createClass = async (req, res, next) => {
         res.status(201).json(newClass.rows[0]);
 
     } catch (err) {
-        console.log(err);
+        next(err);
+        res.status(500).json({message: 'Something went wrong'});
     }
 }
 
@@ -257,7 +283,8 @@ export const deleteClass = async (req, res, next) => {
         await db.query(`DELETE FROM classes WHERE class_id = $1;`, [class_id]);
         res.status(200).json({ message: 'Class deleted' });
     } catch (err) {
-        console.log(err);
+        next(err);
+        res.status(500).json({message: 'Something went wrong'});
     }
 }
 
@@ -276,13 +303,11 @@ export const dropClass = async (req, res, next) => {
         const newSize = classData.rows[0].size - 1;
 
         await db.query(`UPDATE classes SET size = $1 WHERE class_id = $2;`, [newSize, class_id]);
-
         await db.query(`DELETE FROM classlist WHERE class_id = $1 AND user_id = $2;`, [class_id, student_id]);
-
         res.status(200).json({ message: 'Class dropped' });
     } catch (err) {
-        console.log(err);
-        res.status(500).json({ message: 'Server error' });
+        next(err);
+        res.status(500).json({message: 'Something went wrong'});
     }
 };
 
@@ -323,7 +348,8 @@ ${studentList}`
         res.setHeader('Content-Disposition', 'attachment; filename="report.txt"');
         res.status(200).send(report);
     } catch (err) {
-        console.log(err);
+        next(err);
+        res.status(500).json({message: 'Something went wrong'});
     }
 
 }

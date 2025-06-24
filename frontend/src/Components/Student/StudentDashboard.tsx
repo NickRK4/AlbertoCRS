@@ -12,7 +12,7 @@ import DropModal from "./DropModal";
 const Container = styled.div`
     display: flex;
     justify-content: space-between;
-    height: 93.5vh;
+    height = calc(100vh - 60px);
 `;
 
 const LeftContainer = styled.div`

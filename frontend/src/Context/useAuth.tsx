@@ -68,11 +68,11 @@ export const UserProvider = ({ children }: Props) => {
     };
     
     const logout = () => {
+        navigate("/");
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         setToken(null);
         setUser(null);
-        navigate("/");
     };
 
     return (

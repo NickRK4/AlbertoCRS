@@ -6,6 +6,7 @@ import { styled as muiStyled } from '@mui/material/styles';
 import { styled } from "styled-components";
 import RegisterStudent from "./RegisterStudent";
 import EditStudent from "./EditStudent";
+import { Course } from "../../Models/Course";
 
 const PageContainer = styled.div`
     display: flex;
@@ -15,8 +16,21 @@ const PageContainer = styled.div`
     background-color: #F7F7F7;
     overflow-y: hidden;
     height: calc(100vh - 60px);
-    overflow-y: auto;`
+    overflow-y: auto;
+`
 
+
+const InfoContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 350px;
+    padding: 30px;
+    border-radius: 10px;
+    background-color:rgb(255, 255, 255);
+`;
+    
 const SearchBar = styled.input`
     margin-right: 10px;
     margin-top: 10px;
@@ -34,14 +48,14 @@ const Title = styled.h2`
 `;
 
 const Overlay = styled.div`
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 1000;
 `;
@@ -75,6 +89,29 @@ const StyledTableRow = muiStyled(TableRow)(({ theme }) => ({
     },
 }));
 
+const StudentModal = ({isOpen, onClose, student, courses} : {isOpen: boolean, onClose: () => void, student: User, courses: Course[]}) => {    
+    if (!isOpen) {
+        return null;
+    }
+    const selected = courses.map((course) => <p key={course.class_id}>{course.class_code + ": " + course.class_name}</p>)
+        
+
+    return (
+        <>
+        <Overlay>
+            <InfoContainer>
+                <Title style={{marginTop: "0px"}}> {student.first_name} {student.last_name}</Title>
+                <h3 style={{marginBottom: "0px"}}> Student email: </h3>
+                <p> Email: {student.email}</p>
+                <h3 style={{marginBottom: "0px"}}> Enrolled in: </h3>
+                <div>{selected.length == 0 ? <p>Student hasn't enrolled in any classes</p> : selected}</div>
+                <Button onClick={onClose} variant="contained" color="primary" style={{ width: '100px', marginTop: '20px', backgroundColor: '#695ACD' }}>Close</Button>
+            </InfoContainer>
+        </Overlay>
+        </>
+    );
+}
+
 
 const DeleteModal = ({isOpen, onClose, onDelete} : {isOpen: boolean, onClose: () => void, onDelete: () => void}) => {
     if (!isOpen) {
@@ -84,7 +121,8 @@ const DeleteModal = ({isOpen, onClose, onDelete} : {isOpen: boolean, onClose: ()
     return (
         <>
         <Overlay>
-            <Title style={{display: "block", color: "white", marginBottom: "0px"}}>Are you sure you want to delete?</Title>
+            <InfoContainer style={{background: "none"}}>
+            <Title style={{display: "block", color: "white", marginBottom: "0px"}}> Are you sure you want to delete?</Title>
             <Box style={{marginBottom: "100px"}}> 
             <Button
                 onClick={onClose}
@@ -106,23 +144,41 @@ const DeleteModal = ({isOpen, onClose, onDelete} : {isOpen: boolean, onClose: ()
                 Delete
             </Button>
             </Box>
+            </InfoContainer>
         </Overlay>
         </>
     );
 };
 
 
-
 export default function StudentsList() {
-    const { user, token } = useAuth();
+    const { token } = useAuth();
     const [ students, setStudents ] = useState([]);
     const [ search, setSearch ] = useState("");
     const [ selectedStudents, setSelectedStudents ] = useState<number[]>([]);
     const [ deleteModal, setDeleteModal ] = useState(false);
+    const [ infoModal, setInfoModal ] = useState(false);
     const [ editModal, setEditModal ] = useState(false);
     const [ registerModal, setRegisterModal ] = useState(false);
     const [ message, setMessage ] = useState("");
     const [ loading, setLoading ] = useState(false);
+    const [ selectedStudent, setSelectedStudent ] = useState<User>({} as User);
+    const [studentData, setStudentData] = useState<{courses: Course[], loading: boolean}>({
+        courses: [],
+        loading: true
+    });
+
+    const filteredStudents = useMemo(() => {
+        return students.filter((student: User ) => 
+            student.first_name.toLowerCase().includes(search.toLowerCase())
+            || student.last_name.toLowerCase().includes(search.toLowerCase())
+        );
+    }, [search, students]);
+
+    students.filter((student: User ) => 
+        student.first_name.toLowerCase().includes(search.toLowerCase())
+        || student.last_name.toLowerCase().includes(search.toLowerCase())
+    );
 
     const getAllStudents = async () => {
         try {
@@ -148,26 +204,44 @@ export default function StudentsList() {
         }
     }
 
+    const fetchStudentData = async (student: User) => {
+        setStudentData({ courses: [], loading: true });
+        try {
+            const res = await fetch(`http://localhost:8000/api/admin/classesByStudent/${student.user_id}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const data = await res.json();
+            setStudentData({ courses: data.classes, loading: false });
+            setInfoModal(true);
+        } catch (err) {
+            console.log(err);
+            setStudentData({ courses: [], loading: false });
+        }
+    };
+
     // load all the students
     useEffect(() => {
         getAllStudents();
     }, []);
 
+    const handleView = (ID: number) => {
+        const selectedStudent = students.find((student: User) => student.user_id === ID);
+        if (!selectedStudent) {
+            return;
+        }
+
+        setSelectedStudent(selectedStudent);
+        fetchStudentData(selectedStudent);
+    };
+    
+
     const handleChange = (e : React.ChangeEvent<HTMLInputElement>) => {
         setSearch(e.target.value);
     }
-
-    const filteredStudents = useMemo(() => {
-        return students.filter((student: User ) => 
-            student.first_name.toLowerCase().includes(search.toLowerCase())
-            || student.last_name.toLowerCase().includes(search.toLowerCase())
-        );
-    }, [search, students]);
-    
-    students.filter((student: User ) => 
-        student.first_name.toLowerCase().includes(search.toLowerCase())
-        || student.last_name.toLowerCase().includes(search.toLowerCase())
-    );
 
     const handleDelete = async () => {
         const response = await fetch('http://localhost:8000/api/admin/deleteUser', {
@@ -191,14 +265,6 @@ export default function StudentsList() {
         }
     }
 
-     if (user?.user_type !== "professor") {
-        return (
-            <>
-            <Title>404 Not Found</Title>
-            </>
-        )
-    }
-
     if (loading) {
         return (
             <PageContainer>
@@ -207,7 +273,7 @@ export default function StudentsList() {
         )
     }
 
-    if (students.length === 0){
+    if (students.length <= 0){
         return (
             <PageContainer>
                 <Title>No Registered Students</Title>
@@ -217,10 +283,8 @@ export default function StudentsList() {
     }
 
     return (
-        <>
         <PageContainer>
-        {students.length > 0 && (
-            <>
+            <StudentModal isOpen={infoModal} onClose={() => setInfoModal(false)} student={selectedStudent} courses={studentData.courses || students[0]}/>
             <RegisterStudent isOpen={registerModal} onClose={() => setRegisterModal(false)} setMessage={() => {setMessage("Student registered"); setTimeout(() => {setMessage("")}, 3000);} }/>
             <DeleteModal isOpen={deleteModal} onClose={() => setDeleteModal(false)} onDelete={() => handleDelete()}/>
             <EditStudent isOpen={editModal} onClose={() => setEditModal(false)} setMessage={() => {setMessage("Student updated"); setTimeout(() => {setMessage("")}, 3000);} } student={students.find((student: User) => student.user_id === selectedStudents[0]) || students[0]}/>
@@ -269,7 +333,14 @@ export default function StudentsList() {
                         <p style={{color: "red", margin: 0, marginRight: "10px", alignItems: "center"}}> {message} </p>
                     )}
                     {selectedStudents.length < 1 && <Button style={{ paddingInline: "20px", backgroundColor: "#695ACD", marginRight: "10px", color: "white", boxShadow: "0px 1px 5px rgba(0, 0, 0, 0.3)"}}
-                    onClick={() => setRegisterModal(true)}> Register </Button>}
+                    onClick={() => setRegisterModal(true)}
+                    > Register </Button>}
+
+                    <Button style={{paddingInline: "20px", backgroundColor: "#695ACD",marginRight: "10px", color: "white", boxShadow: "0px 1px 5px rgba(0, 0, 0, 0.3)"}}
+                    onClick={
+                        () => {if (selectedStudents.length === 1) {handleView(selectedStudents[0])}else{setMessage('Must select one student'); setTimeout(() =>{setMessage('');}, 3000);}}}
+                        > View</Button>
+
                     {selectedStudents.length <= 1 && (<Button style={{paddingInline: "20px", backgroundColor: "#695ACD", marginRight: "10px", color: "white", boxShadow: "0px 1px 5px rgba(0, 0, 0, 0.3)"}}
                     onClick={ () => {
                         if (selectedStudents.length === 0) {
@@ -280,9 +351,6 @@ export default function StudentsList() {
                         () => {if (selectedStudents.length > 0) {setDeleteModal(true);}else{setMessage('Please select a user to delete'); setTimeout(() =>{setMessage('');}, 3000);}}}> Delete ({selectedStudents.length})</Button>
                 </Box>
             </TableContainer>
-            </>
-            )}
         </PageContainer>
-        </>
     )
 }

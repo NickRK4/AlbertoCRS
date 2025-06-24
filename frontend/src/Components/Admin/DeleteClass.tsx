@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import { useAuth } from "../../Context/useAuth";
 import { Course } from "../../Models/Course";
-import { Box, ClickAwayListener, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent } from "@mui/material";
+import { Box, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent } from "@mui/material";
 
 const Overlay = styled.div`
   position: fixed;
@@ -106,11 +106,17 @@ export default function RegisterClass({isOpen, onClose, setMessage, courses}: {i
 
             if (course === '') {
                 setError('Please select a class');
+                setTimeout(() => {
+                    setError('');
+                }, 2000);
                 return;
             }
 
             if (!confirm){
                 setError('Please confirm');
+                setTimeout(() => {
+                    setError('');
+                }, 2000);
                 return;
             }
 
@@ -147,6 +153,7 @@ export default function RegisterClass({isOpen, onClose, setMessage, courses}: {i
                     onSubmit={deleteClass}>
                     <FormTitle>Class</FormTitle>
                     <p> Delete a class </p>
+                    <p style={{color: 'red'}}> {error} </p>
                     <Label> Class Code: </Label>
                     <Box ref = {formRef} sx={{ minWidth: 120 }}>
                         <FormControl fullWidth>

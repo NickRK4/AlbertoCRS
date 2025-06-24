@@ -3,23 +3,21 @@ import GlobalStyle from './GlobalStyles.tsx';
 import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router';
 import Navbar from './Components/Navbar.tsx';
-import { useState } from 'react';
 import { UserProvider } from './Context/useAuth.tsx';
-import Home from './Screens/Admin/Admin/Home.tsx';
-import Students from './Screens/Admin/Admin/Students.tsx';
+import Home from './Screens/Home.tsx';
+import Students from './Screens/Students.tsx';
 
 function App() {
-  const [showNavbar, setShowNavbar] = useState(true);
   return (
     <>
     <GlobalStyle />
     <Router>
       <UserProvider>
-      {showNavbar && <Navbar />}
+      <Navbar/>
       <Routes>
-        <Route path="/" element={<SignIn setShowNavBar={setShowNavbar}/>} />
-        <Route path="/home" element={<Home setShowNavBar={setShowNavbar}/>} />
-        <Route path="students" element= {<Students setShowNavBar={setShowNavbar} />} />
+        <Route path="/" element={<SignIn/>} />
+        <Route path="/home" element={<Home/>} />
+        <Route path="/students" element= {<Students/>} />
       </Routes>
       </UserProvider>
     </Router>

@@ -93,7 +93,6 @@ export default function RegisterClass({ isOpen, onClose, message}: { isOpen: boo
     const [classes, setClasses] = useState<Course[]>([]);
     const [selectedClass, setSelectedClass] = useState<Course | null>(null);
     const [showConfirm, setConfirm] = useState(false);
-    const [loading, setLoading] = useState(false);
 
     const handleEnroll = async () => {
         try {
@@ -125,7 +124,6 @@ export default function RegisterClass({ isOpen, onClose, message}: { isOpen: boo
 
     const getData = async () => {
         try {
-            setLoading(true);
             const res = await fetch('http://localhost:8000/api/admin/courses', {
                 method: 'GET',
                 headers: {
@@ -140,9 +138,7 @@ export default function RegisterClass({ isOpen, onClose, message}: { isOpen: boo
             setClasses(data);
         } catch (err) {
             console.log(err);
-        } finally {
-            setLoading(false);
-        }
+        } 
     };
 
     useEffect(() => {

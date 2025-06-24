@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import React, { useLayoutEffect, useState } from "react";
+import React, { useState } from "react";
 import { useAuth } from "../Context/useAuth";
 import { loginAPI } from "../Services/AuthServices";
 
@@ -9,8 +9,8 @@ const Cont = styled.div`
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    overflow-x: hidden;
 `
-
 
 const Container = styled.div`
     width: 100%;
@@ -98,16 +98,12 @@ const AlertContainer = styled.div`
 
 
 
-const SignIn = ( {setShowNavBar} : {setShowNavBar: React.Dispatch<React.SetStateAction<boolean>>} ) => {
+const SignIn = () => {
     const [ username, setUsername ] = useState("");
     const [ password, setPassword ] = useState("");
     const [ error, setError ] = useState("");
     const [ showError , setShowError ] = useState(false);
     const { loginUser } = useAuth();
-
-    useLayoutEffect(() => {
-        setShowNavBar(false);
-    }, []);
 
     function UserNotFound() {
         if (!showError) {

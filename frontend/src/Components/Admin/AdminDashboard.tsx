@@ -137,7 +137,7 @@ const PieChartContainer = style.div`
 `;
 
 
-const StyledCard = styled(Card)(({ theme }) => ({
+const StyledCard = styled(Card)(() => ({
     boxShadow: 'none',
     border: '1px solid rgb(224, 224, 224)',
     borderRadius: '8px',
@@ -192,6 +192,7 @@ export default function Dashboard() {
     const [showRegisterStudent, setShowRegisterStudent] = useState(false);
     const [showRegisterClass, setShowRegisterClass] = useState(false);
     const [showDeleteClass, setShowDeleteClass] = useState(false);
+    const [fullOnly, setFullOnly] = useState(false);
     const navigate = useNavigate();
 
     const getClassData = async (id: number) => {
@@ -236,16 +237,21 @@ export default function Dashboard() {
     };
 
     const filteredClasses = useMemo(() => {
-        return classes.filter(course => 
+        let filtered = classes.filter(course => 
             course.class_name.toLowerCase().includes(search.toLowerCase()) ||
             course.class_id.toString().includes(search)
         );
-    }, [classes, search]);
+
+        if (fullOnly){
+            filtered = filtered.filter(course => course.size >= course.capacity);
+        }
+
+        return filtered;
+    }, [classes, search, fullOnly]);
 
     const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(event.target.value);
     }
-
 
     const handleDrawerClose = () => {
         if (document.activeElement instanceof HTMLElement) {
@@ -431,12 +437,11 @@ export default function Dashboard() {
                             </TableBody>
                         </Table>
                         </Box>
-                        {filteredClasses.length > 0 && (
-                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2, width: '100%' }}>
-                                {selectedClasses.length === 0 && <Button sx={{ marginRight: 1, marginTop: 1, backgroundColor: '#695ACD' }} variant="contained">View Full</Button>}
-                                {selectedClasses.length <= 1 && <Button sx={{ marginRight: 1, marginTop: 1, backgroundColor: '#695ACD' }} variant="contained"onClick={() => handleReport()}>Generate Report (.txt)</Button>}
-                            </Box>
-                        )}
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2, width: '100%' }}>
+                            <Button sx={{ marginRight: 1, marginTop: 1, backgroundColor: '#695ACD' }} variant="contained"
+                            onClick = {() => setFullOnly(!fullOnly)}>View Full</Button>
+                            {selectedClasses.length <= 1 && <Button sx={{ marginRight: 1, marginTop: 1, backgroundColor: '#695ACD' }} variant="contained"onClick={() => handleReport()}>Generate Report (.txt)</Button>}
+                        </Box>
                     </TableContainer>
                 </LeftContainer>
                 <RightContainer>
@@ -449,7 +454,6 @@ export default function Dashboard() {
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', gap: '8px' }}>
                             <Button style={actionButtonStyle} variant="contained" onClick={() => setShowRegisterStudent(true)}>Register User</Button>
                             <Button style={actionButtonStyle} variant="contained" onClick={() => navigate("/students")}>View Students</Button>
-                            
                         </Box>
                     </ActionMenuContainer>
                     <PieChartContainer>
