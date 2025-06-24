@@ -136,6 +136,12 @@ const PieChartContainer = style.div`
     width: 100%;
 `;
 
+type Metrics = {
+    classes: number;
+    students: number;
+    professors: number;
+    topics: Record<string, number>;
+}
 
 const StyledCard = styled(Card)(() => ({
     boxShadow: 'none',
@@ -193,10 +199,40 @@ export default function Dashboard() {
     const [showRegisterClass, setShowRegisterClass] = useState(false);
     const [showDeleteClass, setShowDeleteClass] = useState(false);
     const [fullOnly, setFullOnly] = useState(false);
+    const [metrics , setMetrics] = useState<Metrics>({
+        classes: 0,
+        students: 0,
+        professors: 0,
+        topics: {}
+    });
     const navigate = useNavigate();
+
+
+    const getMetrics = async () => {
+        try {
+            setLoading(true);
+            const res = await fetch('http://localhost:8000/api/admin/metrics', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (res.status !== 200) {
+                throw new Error('Failed to fetch data');
+            }
+            const data = await res.json();
+            setMetrics(data);
+        } catch (err) {
+            console.log(err);
+        } finally{
+            setLoading(false);
+        }
+    };
 
     const getClassData = async (id: number) => {
         try {
+            setLoading(true);
             const res = await fetch(`http://localhost:8000/api/admin/class/${id}`, {
                 method: 'GET',
                 headers: {
@@ -211,6 +247,8 @@ export default function Dashboard() {
             setStudents(data);
         } catch (err) {
             console.log(err);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -262,6 +300,10 @@ export default function Dashboard() {
 
     useEffect(() => {
         getData();
+    }, []);
+
+    useEffect(() => {
+        getMetrics();
     }, []);
 
     const handleRowClick = (selected: Course) => {
@@ -364,26 +406,26 @@ export default function Dashboard() {
                     <SummaryCardsContainer>
                         <StyledCard sx={cardStyles}>
                             <CardContent>
-                                <Typography variant="h3" color="#color:rgb(45, 45, 45);" fontSize="32px">0</Typography>
-                                <Typography fontWeight="bold" color="#color:rgb(45, 45, 45);" fontSize="16px">Classes</Typography>
+                                <Typography variant="h3" fontSize="32px">{metrics.classes}</Typography>
+                                <Typography fontWeight="bold" fontSize="16px">Classes</Typography>
                             </CardContent>
                         </StyledCard>
                         <StyledCard sx={cardStyles}>
                             <CardContent>
-                                <Typography variant="h3" color="#color:rgb(45, 45, 45);" fontSize="32px">0</Typography>
-                                <Typography fontWeight="bold" color="#color:rgb(45, 45, 45);" fontSize="16px">Students</Typography>
+                                <Typography variant="h3" fontSize="32px">{metrics.students}</Typography>
+                                <Typography fontWeight="bold" fontSize="16px">Students</Typography>
                             </CardContent>
                         </StyledCard>
                         <StyledCard sx={cardStyles}>
                             <CardContent>
-                                <Typography variant="h3" color="#color:rgb(45, 45, 45);" fontSize="32px">0</Typography>
-                                <Typography fontWeight="bold" color="#color:rgb(45, 45, 45);" fontSize="16px">Professors</Typography>
+                                <Typography variant="h3" fontSize="32px">{metrics.professors}</Typography>
+                                <Typography fontWeight="bold" fontSize="16px">Professors</Typography>
                             </CardContent>
                         </StyledCard>
                         <StyledCard sx={cardStyles}>
                             <CardContent>
-                                <Typography variant="h3" color="#color:rgb(45, 45, 45);" fontSize="32px">0</Typography>
-                                <Typography fontWeight="bold" color="#color:rgb(45, 45, 45);" fontSize="16px">Empty Classes</Typography>
+                                {metrics && metrics.topics && <Typography variant="h3" fontSize="32px">{Object.keys(metrics.topics).length}</Typography>}
+                                <Typography fontWeight="bold" fontSize="16px">Topics</Typography>
                             </CardContent>
                         </StyledCard>
                     </SummaryCardsContainer>
@@ -461,13 +503,14 @@ export default function Dashboard() {
                         <PieChart
                             height={350}
                             width={350}
+                            colors={["#695ACD","#A9A9A9","#530686", "#3048AD"]}
                             series={[
                                 {
-                                    data: [
-                                        { id: 0, value: 25, label: 'STEM', color: '#43296E' },
-                                        { id: 1, value: 10, label: 'Humanities', color: '#808080' },
-                                        { id: 2, value: 15, label: 'Other', color: '#695ACD' },
-                                    ],
+                                    data: Object.keys(metrics.topics).map((key) => ({
+                                    id: key,
+                                    value: metrics.topics[key],
+                                    label: key
+                                    })),
                                     innerRadius: 80,
                                 },
                             ]}

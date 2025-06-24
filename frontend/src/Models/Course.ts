@@ -5,4 +5,6 @@ export type Course = {
     size: number;
     capacity: number;
     professor: string;
+    section: number;
+    category: string;
 }

@@ -113,10 +113,37 @@ const StudentModal = ({isOpen, onClose, student, courses} : {isOpen: boolean, on
 }
 
 
-const DeleteModal = ({isOpen, onClose, onDelete} : {isOpen: boolean, onClose: () => void, onDelete: () => void}) => {
+const DeleteModal = ({isOpen, onClose, success, students} : {isOpen: boolean, onClose: () => void, success: () => void, students: number[]}) => {
+    const { token } = useAuth();
+
     if (!isOpen) {
         return null;
     }
+
+    const handleDelete = async () => {
+        try {
+            const response = await fetch('http://localhost:8000/api/admin/deleteUser', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    user_ids: students
+                })
+            });
+
+            if (response.status !== 204) {
+                return;
+            }
+
+            success();
+            onClose();
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
 
     return (
         <>
@@ -134,7 +161,7 @@ const DeleteModal = ({isOpen, onClose, onDelete} : {isOpen: boolean, onClose: ()
             </Button>
             <Button 
                 onClick={() => {
-                    onDelete();
+                    handleDelete();
                     onClose();
                 }}
                 variant="contained" 
@@ -243,27 +270,6 @@ export default function StudentsList() {
         setSearch(e.target.value);
     }
 
-    const handleDelete = async () => {
-        const response = await fetch('http://localhost:8000/api/admin/deleteUser', {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                user_ids: selectedStudents
-            })
-        });
-
-        if (response.status === 200) {
-            getAllStudents();
-            setSelectedStudents([]);
-            setMessage('Users deleted');
-            setTimeout(() =>{
-                setMessage('');
-            }, 3000);
-        }
-    }
 
     if (loading) {
         return (
@@ -286,7 +292,7 @@ export default function StudentsList() {
         <PageContainer>
             <StudentModal isOpen={infoModal} onClose={() => setInfoModal(false)} student={selectedStudent} courses={studentData.courses || students[0]}/>
             <RegisterStudent isOpen={registerModal} onClose={() => setRegisterModal(false)} setMessage={() => {setMessage("Student registered"); setTimeout(() => {setMessage("")}, 3000);} }/>
-            <DeleteModal isOpen={deleteModal} onClose={() => setDeleteModal(false)} onDelete={() => handleDelete()}/>
+            <DeleteModal isOpen={deleteModal} onClose={() => setDeleteModal(false)} success={()=>{setMessage("Student deleted"); setTimeout(() => {setMessage("")}, 3000);}} students={selectedStudents}/>
             <EditStudent isOpen={editModal} onClose={() => setEditModal(false)} setMessage={() => {setMessage("Student updated"); setTimeout(() => {setMessage("")}, 3000);} } student={students.find((student: User) => student.user_id === selectedStudents[0]) || students[0]}/>
             <Title> Students ({filteredStudents.length}) </Title>
             <TableContainer sx={{ outline: "1px solid #ccc", borderRadius: "10px", maxWidth: "95%", backgroundColor: "#FFFFFF" }}>

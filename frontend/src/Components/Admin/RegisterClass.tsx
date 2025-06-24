@@ -32,8 +32,22 @@ const Form = styled.form`
     margin-bottom: 20px;
 `;
 
+const RadioGroup = styled.div`
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 16px;
+`;
+
+const RadioLabel = styled.label`
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+`;
+
 const FormTitle = styled.h2`
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     text-align: center;
 `;
 
@@ -69,7 +83,9 @@ export default function RegisterClass({isOpen, onClose, setMessage}: {isOpen: bo
         class_name : '',
         size : 0,
         capacity : 0,
-        professor : ''
+        professor : '',
+        section : 0,
+        category : ''
     } as Course);
     const { token } = useAuth();
     const formRef = useRef<HTMLFormElement>(null);
@@ -128,7 +144,40 @@ export default function RegisterClass({isOpen, onClose, setMessage}: {isOpen: bo
                     ref={formRef}
                     onSubmit={createClass}>
                     <FormTitle>Class</FormTitle>
-                    <p> Register a new class </p>
+                    <p style={{margin: "0"}}> Register a new class </p>
+                    <RadioGroup>
+                        <Label> Category: </Label>
+                        <RadioLabel>
+                            <input
+                                type="radio"
+                                name="category"
+                                value="STEM"
+                                checked={newClass.category === 'STEM'}
+                                onChange={handleClass}
+                            />
+                            Humanities
+                        </RadioLabel>
+                        <RadioLabel>
+                            <input
+                                type="radio"
+                                name="category"
+                                value="Humanities"
+                                checked={newClass.category === 'Humanities'}
+                                onChange={handleClass}
+                            />
+                            STEM
+                        </RadioLabel>
+                        <RadioLabel>
+                            <input
+                                type="radio"
+                                name="category"
+                                value="Other"
+                                checked={newClass.category === 'Other'}
+                                onChange={handleClass}
+                            />
+                            Other
+                        </RadioLabel>
+                    </RadioGroup>
                     <Label> Class Code: </Label>
                     <StyledInput
                         placeholder="e.g. CS-UA 101"
@@ -141,6 +190,13 @@ export default function RegisterClass({isOpen, onClose, setMessage}: {isOpen: bo
                         placeholder="Class Name"
                         type="text"
                         name="class_name"
+                        onChange={handleClass}
+                    />
+                    <Label> Section: </Label>
+                    <StyledInput
+                        placeholder="Professor Name"
+                        type="text"
+                        name="professor"
                         onChange={handleClass}
                     />
                     <Label> Professor: </Label>

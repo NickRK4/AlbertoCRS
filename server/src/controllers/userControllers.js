@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import db from '../config/dbPool.js';
 import fs from 'fs';
+import { use } from 'react';
 
 // returns all the student
 export const getAllUsers = async (req, res, next) => {
@@ -43,11 +44,15 @@ export const deleteUser = async (req, res, next) => {
         }
 
         const placeholders = user_ids.map((_, idx) => `$${idx + 1}`).join(', ');
+        await db.query(`DELETE FROM classlist WHERE user_id IN (${placeholders});`, user_ids);
         const query = `DELETE FROM users WHERE user_id IN (${placeholders});`;
         const result = await db.query(query, user_ids);
 
-        res.status(200).json({ message: 'Users deleted' });
+        
+
+        res.status(204).json({ message: 'Users deleted' });
     } catch (err) {
+        console.log(err);
         res.status(500).json({ message: 'Server error' });
     }
 };
@@ -341,3 +346,35 @@ ${studentList}`;
     }
 
 }
+
+
+export const getMetrics = async (req, res, next) => {
+    try {
+        
+        const allTopics = await db.query(`SELECT DISTINCT category, COUNT(*) AS count, category FROM classes GROUP BY category;`);
+        const allClasses = await db.query(`SELECT COUNT(*) FROM classes;`);
+        const allStudents = await db.query(`SELECT COUNT(*) FROM users WHERE user_type = 'student';`);
+        const allProfessors = await db.query(`SELECT COUNT(*) FROM users WHERE user_type = 'professor';`);
+
+        const topics = {};
+
+        for (let i = 0; i < allTopics.rows.length; i++) {
+            topics[allTopics.rows[i].category] = allTopics.rows[i].count;
+        }
+
+        const data = {
+            classes: allClasses.rows[0].count,
+            students: allStudents.rows[0].count,
+            professors: allProfessors.rows[0].count,
+            topics: topics
+        }
+        
+        res.status(200).json(data);
+    } catch (err){
+        console.log(err);
+        res.status(500).json({message: 'Something went wrong'});
+    }
+}
+
+
+

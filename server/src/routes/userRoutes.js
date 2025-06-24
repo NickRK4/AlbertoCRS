@@ -1,9 +1,12 @@
 import express from 'express';
-import {deleteClass, generateReport, dropClass, enrollStudent, updateUser, deleteUser, getAllUsers, getAllStudents, getUserWithID, createUser, getAllCourses, getClassesByStudent, getStudentsByClass, createClass } from '../controllers/userControllers.js';
+import {getMetrics, deleteClass, generateReport, dropClass, enrollStudent, updateUser, deleteUser, getAllUsers, getAllStudents, getUserWithID, createUser, getAllCourses, getClassesByStudent, getStudentsByClass, createClass } from '../controllers/userControllers.js';
 import verifyToken from '../middleware/authMiddleware.js';
 import authorizeRoles from '../middleware/roleMiddleware.js';
 
 const userRouter = express.Router();
+
+// unrelated metrics for admin
+userRouter.get('/metrics', verifyToken, authorizeRoles('professor'), getMetrics);
 
 // add new student
 userRouter.post('/add',verifyToken, authorizeRoles('professor'), createUser);
@@ -46,6 +49,5 @@ userRouter.post('/enroll', verifyToken, authorizeRoles('professor', 'student'), 
 
 // generates the report and sends it back
 userRouter.post('/class/report/:code', verifyToken, authorizeRoles('professor'), generateReport);
-
 
 export default userRouter;
