@@ -43,6 +43,12 @@ export const deleteUser = async (req, res, next) => {
             return next(err);
         }
 
+        // need to calculate the new class sizes!!
+            for (let i = 0; i < user_ids.length; i++) {
+                await db.query(`UPDATE classes SET size = size - 1 WHERE class_id IN (SELECT class_id FROM classlist WHERE user_id = $1);`, [user_ids[i]]);
+            }
+        // ---
+
         const placeholders = user_ids.map((_, idx) => `$${idx + 1}`).join(', ');
         await db.query(`DELETE FROM classlist WHERE user_id IN (${placeholders});`, user_ids);
         const query = `DELETE FROM users WHERE user_id IN (${placeholders});`;
@@ -237,7 +243,7 @@ export const enrollStudent = async (req, res, next) => {
 // creates a new class in the database
 export const createClass = async (req, res, next) => {
     try {
-        const { class_code, class_name, size, capacity, professor } = req.body;
+        const { class_code, class_name, size, capacity, professor, category, section } = req.body;
 
         const professorResult = await db.query(
             `SELECT user_id FROM users WHERE CONCAT(first_name, ' ', last_name) = $1;`,
@@ -251,17 +257,18 @@ export const createClass = async (req, res, next) => {
         }
 
         const professor_id = professorResult.rows[0].user_id;
-        const values = [class_code, class_name, professor_id, parseInt(size), parseInt(capacity)];
+        const values = [class_code, class_name, professor_id, parseInt(size), parseInt(capacity), category, parseInt(section)];
 
         const newClass = await db.query(
-            `INSERT INTO classes(class_code, class_name, professor_id, size, capacity) 
-            VALUES ($1, $2, $3, $4, $5) RETURNING *;`,
+            `INSERT INTO classes(class_code, class_name, professor_id, size, capacity, category, section) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;`,
             values
         );
 
         res.status(201).json(newClass.rows[0]);
 
     } catch (err) {
+        console.log(err);
         res.status(500).json({message: 'Something went wrong'});
     }
 }

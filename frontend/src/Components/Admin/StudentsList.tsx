@@ -294,7 +294,7 @@ export default function StudentsList() {
             <RegisterStudent isOpen={registerModal} onClose={() => setRegisterModal(false)} setMessage={() => {setMessage("Student registered"); setTimeout(() => {setMessage("")}, 3000);} }/>
             <DeleteModal isOpen={deleteModal} onClose={() => setDeleteModal(false)} success={()=>{setMessage("Student deleted"); setTimeout(() => {setMessage("")}, 3000);}} students={selectedStudents}/>
             <EditStudent isOpen={editModal} onClose={() => setEditModal(false)} setMessage={() => {setMessage("Student updated"); setTimeout(() => {setMessage("")}, 3000);} } student={students.find((student: User) => student.user_id === selectedStudents[0]) || students[0]}/>
-            <Title> Students ({filteredStudents.length}) </Title>
+            <Title> Students </Title>
             <TableContainer sx={{ outline: "1px solid #ccc", borderRadius: "10px", maxWidth: "95%", backgroundColor: "#FFFFFF" }}>
                 <Box sx = {{ marginBottom: "10px", display: "flex", justifyContent: "flex-end", width: "100%" }}>
                     <SearchBar onChange={handleChange}type="text" placeholder="Search User"></SearchBar>

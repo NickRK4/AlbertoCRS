@@ -63,7 +63,7 @@ const SummaryCardsContainer = style.div`
     justify-content: space-between;
     width: 100%;
     gap: 5px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 `;
 
 const ActionMenuContainer = style.div`

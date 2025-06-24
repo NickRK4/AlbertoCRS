@@ -102,6 +102,7 @@ export default function StudentDashboard(){
     return (
         <>
         <h1 style= {{color: "#2B2B2B"}}> Welcome back, {user?.first_name} </h1>
+        {classes.length === 0 && <p style={{ margin: "0"}}> No classes found, start enrolling! </p>}
         <Container>
         <RegisterClass isOpen={showClasses} onClose={() => setShowClasses(false)} message={(msg: string) => {setMessage(msg); setTimeout(() => {setMessage("")}, 2000);}}/>
         <DropModal isOpen={showDrop} onClose={() => setShowDrop(false)} courses={classes} message={(msg: string) => {setMessage(msg); setTimeout(() => {setMessage("")}, 2000);}}/>
@@ -148,7 +149,6 @@ export default function StudentDashboard(){
                 </Box>
                 </TableAndButton>
             }
-            {classes.length === 0 && <p> No classes found, start enrolling! </p>}
         </RightContainer>
         </Container>
         </>
