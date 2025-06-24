@@ -13,7 +13,7 @@ export const getAllUsers = async (req, res, next) => {
         }
         res.status(200).json(users.rows);
     } catch (err) {
-        next(err);
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -28,7 +28,7 @@ export const getAllStudents = async (req, res, next) => {
         }
         res.status(200).json(users.rows);
     } catch (err) {
-        next(err);
+        res.status(500).json({ message: 'Server error' });
     }
 }
 
@@ -48,7 +48,6 @@ export const deleteUser = async (req, res, next) => {
 
         res.status(200).json({ message: 'Users deleted' });
     } catch (err) {
-        next(err);
         res.status(500).json({ message: 'Server error' });
     }
 };
@@ -68,7 +67,6 @@ export const updateUser = async (req, res, next) => {
         db.query('UPDATE users SET first_name = $1, last_name = $2, email = $3, password_hash = $4 WHERE user_id = $5', [first_name, last_name, email, hashedPassword, user_id]);
         res.status(200).json({message: 'User updated'});
     } catch (err) {
-        next(err);
         res.status(500).json({message: 'Something went wrong'});
     }
 };
@@ -86,7 +84,6 @@ export const getUserWithID = async (req, res, next) => {
         }
         res.status(200).json(user.rows.at(0));
     } catch (err) {
-        next(err);
         res.status(500).json({message: 'Something went wrong'});
     }
 };
@@ -109,7 +106,6 @@ export const getAllCourses = async (req, res, next) => {
         }
         res.status(200).json(courses.rows);
     } catch (err) {
-        next(err);
         res.status(500).json({message: 'Something went wrong'});
     }
 }
@@ -140,7 +136,6 @@ export const createUser = async (req, res, next) => {
         res.status(201).json({ message: 'User created', user: newUser.rows[0] });
 
     } catch (err) {
-        next(err);
         res.status(500).json({message: 'Something went wrong'});
     }
 };
@@ -171,7 +166,6 @@ export const getClassesByStudent = async (req, res, next) => {
         );
         res.status(200).json({ classes: classes.rows, message: "Success" });
     } catch (err) {
-        next(err);
         res.status(500).json({message: 'Something went wrong'});
     }
 };
@@ -194,7 +188,6 @@ export const getStudentsByClass = async (req, res, next) => {
         }
         res.status(200).json(students.rows);
     } catch (err) {
-        next(err);
         res.status(500).json({message: 'Something went wrong'});
     }
 };
@@ -231,7 +224,6 @@ export const enrollStudent = async (req, res, next) => {
         res.status(201).json({ message: 'Student enrolled' });
 
     } catch (err) {
-        next(err);
         res.status(500).json({message: 'Something went wrong'});
     }
 };
@@ -265,7 +257,6 @@ export const createClass = async (req, res, next) => {
         res.status(201).json(newClass.rows[0]);
 
     } catch (err) {
-        next(err);
         res.status(500).json({message: 'Something went wrong'});
     }
 }
@@ -281,9 +272,8 @@ export const deleteClass = async (req, res, next) => {
         }
 
         await db.query(`DELETE FROM classes WHERE class_id = $1;`, [class_id]);
-        res.status(200).json({ message: 'Class deleted' });
+        res.status(204).json({ message: 'Class deleted' });
     } catch (err) {
-        next(err);
         res.status(500).json({message: 'Something went wrong'});
     }
 }
@@ -306,7 +296,6 @@ export const dropClass = async (req, res, next) => {
         await db.query(`DELETE FROM classlist WHERE class_id = $1 AND user_id = $2;`, [class_id, student_id]);
         res.status(200).json({ message: 'Class dropped' });
     } catch (err) {
-        next(err);
         res.status(500).json({message: 'Something went wrong'});
     }
 };
@@ -342,13 +331,12 @@ Professor: ${professor}
 Size: ${size}
 Capacity: ${capacity}
 Students:
-${studentList}`
-        
+${studentList}`;
+
         res.setHeader('Content-Type', 'text/plain');
         res.setHeader('Content-Disposition', 'attachment; filename="report.txt"');
         res.status(200).send(report);
     } catch (err) {
-        next(err);
         res.status(500).json({message: 'Something went wrong'});
     }
 

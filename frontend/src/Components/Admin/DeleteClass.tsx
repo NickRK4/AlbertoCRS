@@ -129,8 +129,12 @@ export default function RegisterClass({isOpen, onClose, setMessage, courses}: {i
                 body: JSON.stringify({})
             });
 
-            if (res.status !== 201) {
-                setError('Something went wrong');
+            if (res.status !== 204) {
+                setError('Something went wrong. Make sure the class is empty.');
+                setTimeout(() => {
+                    setError('');
+                }, 2000);
+                return;
             }
             
             onClose();
