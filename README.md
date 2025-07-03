@@ -15,6 +15,9 @@ This Class Management System is built with a modern tech stack:
 - **Backend**: Express.js with PostgreSQL database
 - **Authentication**: JWT-based authentication system and custom express middleware for RBAC
 
+# Database Schema
+![DB Schema](./public/Database.png)
+
 ## Features
 
 ### Professor Features
