@@ -5,7 +5,7 @@ import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import { styled as style } from "styled-components";
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { PieChart } from '@mui/x-charts/PieChart';
 import { Box, Drawer, Checkbox, Card, CardContent, Typography, Button, TableContainer, Divider } from '@mui/material';
 import { Student } from "../../Models/User";
@@ -211,7 +211,7 @@ export default function Dashboard() {
     const getMetrics = async () => {
         try {
             setLoading(true);
-            const res = await fetch('http://localhost:8000/api/admin/metrics', {
+            const res = await fetch('/api/admin/metrics', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -233,7 +233,7 @@ export default function Dashboard() {
     const getClassData = async (id: number) => {
         try {
             setLoading(true);
-            const res = await fetch(`http://localhost:8000/api/admin/class/${id}`, {
+            const res = await fetch(`/api/admin/class/${id}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -255,7 +255,7 @@ export default function Dashboard() {
     const getData = async () => {
         try {
             setLoading(true);
-            const res = await fetch('http://localhost:8000/api/admin/courses', {
+            const res = await fetch('/api/admin/courses', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -306,15 +306,20 @@ export default function Dashboard() {
         getMetrics();
     }, []);
 
-    const handleRowClick = (selected: Course) => {
-        setSelectedClass(selected);
-        getClassData(selected.class_id);
+    const handleRowClick = useCallback((selected: Course) => {
+        Promise.resolve().then(() => {
+            setSelectedClass(selected);
+            getClassData(selected.class_id);
+        });
+        
         if (selectedClasses.length === 0) {
             setTimeout(() => {
                 setState({ ...state, left: true });
             }, 40);
+        } else {
+            setState({ ...state, left: true });
         }
-    };
+    }, [selectedClasses, setState, state, getClassData]);
 
     const handleReport = async () => {
         try {
@@ -322,7 +327,7 @@ export default function Dashboard() {
                 return;
             }
 
-            const res = await fetch(`http://localhost:8000/api/admin/class/report/${selectedClasses[0]}`, {
+            const res = await fetch(`/api/admin/class/report/${selectedClasses[0]}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
