@@ -2,7 +2,7 @@
 
 A full-stack application for managing classes, students, and professors in an educational setting. The system supports basic CRUD operations allowing professors to manage classes and students. Professors can also generate instant reports in .txt file format. Students can view, register and drop classes. 
 
-## Galery
+## Gallery
 ![Admin Homepage](./public/AdminDashboard.png)
 ![Student Registration](./public/ClassRegister.png)
 ![Student Control](./public/StudentList.png)
